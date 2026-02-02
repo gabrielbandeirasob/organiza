@@ -73,20 +73,18 @@ const App: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (transactions.length > 0) {
-      const fetchInsights = async () => {
-        setIsInsightsLoading(true);
-        const data = await generateFinancialInsights(transactions);
-        setInsights(data);
-        setIsInsightsLoading(false);
-      };
-
-      // Debounce slightly or only run on major updates
-      // For now we keep it simple, but in prod maybe trigger manually or less often
-      fetchInsights();
-    }
-  }, [transactions.length]); // Simple dependency check
+  // AI Insights temporarily disabled
+  // useEffect(() => {
+  //   if (transactions.length > 0) {
+  //     const fetchInsights = async () => {
+  //       setIsInsightsLoading(true);
+  //       const data = await generateFinancialInsights(transactions);
+  //       setInsights(data);
+  //       setIsInsightsLoading(false);
+  //     };
+  //     fetchInsights();
+  //   }
+  // }, [transactions.length]);
 
   const handleOpenAddModal = () => {
     setEditingTransaction(null);
