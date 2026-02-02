@@ -227,25 +227,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
           { label: 'GASTO MÉDIO DIÁRIO', value: stats.dailyAvg, trend: '+0%', trendType: 'up', icon: DollarSign },
           { label: 'CATEGORIA MAIOR GASTO', value: stats.topCategory[0], detail: `R$ ${Number(stats.topCategory[1]).toLocaleString('pt-BR')}`, icon: PieChart },
         ].map((stat, i) => (
-          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl hover:border-zinc-700 transition-all group">
-            <div className="flex justify-between items-start mb-4">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.label}</p>
-              <div className="p-2 bg-zinc-800 rounded-lg text-zinc-400 group-hover:text-emerald-500 transition-colors">
-                <stat.icon size={16} />
+          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-4 md:p-6 rounded-2xl hover:border-zinc-700 transition-all group">
+            <div className="flex justify-between items-start mb-3 md:mb-4">
+              <p className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-wider md:tracking-widest">{stat.label}</p>
+              <div className="p-1.5 md:p-2 bg-zinc-800 rounded-lg text-zinc-400 group-hover:text-emerald-500 transition-colors">
+                <stat.icon size={14} className="md:w-4 md:h-4" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl font-bold text-white mb-1">
+              <span className="text-xl md:text-2xl font-bold text-white mb-1">
                 {typeof stat.value === 'number' ? `R$${stat.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : stat.value}
               </span>
               {stat.trend && (
-                <span className={`text-xs font-semibold flex items-center gap-1 ${stat.trendType === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                  {/* {stat.trendType === 'up' ? '↑' : '↓'} {stat.trend} <span className="text-zinc-500 font-normal">vs mês ant.</span> */}
-                  {/* Removendo texto de tendência falso por enquanto */}
-                  <span className="text-zinc-500 font-normal">No período selecionado</span>
+                <span className={`text-[10px] md:text-xs font-semibold flex items-center gap-1 ${stat.trendType === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  <span className="text-zinc-500 font-normal">Período selecionado</span>
                 </span>
               )}
-              {stat.detail && <span className="text-xs text-zinc-500">{stat.detail}</span>}
+              {stat.detail && <span className="text-[10px] md:text-xs text-zinc-500 truncate">{stat.detail}</span>}
             </div>
           </div>
         ))}
