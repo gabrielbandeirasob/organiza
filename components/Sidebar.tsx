@@ -53,9 +53,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, onAddTra
 
       {/* Sidebar */}
       <aside className={`
-        w-64 flex flex-col border-r border-zinc-800 bg-[#0d0d0d] h-screen sticky top-0 overflow-y-auto z-50
-        md:translate-x-0 transition-transform duration-300
-        ${isMobileMenuOpen ? 'translate-x-0 fixed' : '-translate-x-full md:translate-x-0'}
+        w-64 flex flex-col border-r border-zinc-800 bg-[#0d0d0d] h-screen overflow-y-auto z-50
+        fixed md:sticky top-0 transition-transform duration-300
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Mobile Close Button */}
         <button
