@@ -9,7 +9,7 @@ import { Transaction, TransactionType, Category, View, AIInsight, DEFAULT_CATEGO
 import { transactionService } from './services/transactionService';
 import { generateFinancialInsights } from './services/geminiService';
 import { supabase } from './lib/supabase';
-import { X, Sliders, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, Sliders, Plus, Trash2, Loader2, Menu } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 
 const App: React.FC = () => {
@@ -27,6 +27,7 @@ const App: React.FC = () => {
   // Category management state
   const [isManagingCategories, setIsManagingCategories] = useState(false);
   const [tempCatName, setTempCatName] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Modal form state
   const [newDesc, setNewDesc] = useState('');
@@ -186,34 +187,46 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0d0d0d] selection:bg-emerald-500/30 text-zinc-300">
+    <div className="flex h-screen bg-[#0d0d0d] overflow-hidden">
       <Sidebar
         currentView={currentView}
         setCurrentView={setCurrentView}
         onAddTransaction={handleOpenAddModal}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      <main className="flex-1 overflow-x-hidden">
-        {currentView === 'dashboard' && (
-          <Dashboard
-            transactions={transactions}
-            categories={categories}
-            insights={insights}
-            isInsightsLoading={isInsightsLoading}
-          />
-        )}
-        {currentView === 'records' && (
-          <Records
-            transactions={transactions}
-            categories={categories}
-            onAddTransaction={handleOpenAddModal}
-            onEditTransaction={handleOpenEditModal}
-            onDeleteTransaction={handleDeleteTransaction}
-          />
-        )}
-        {currentView === 'settings' && (
-          <Settings />
-        )}
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-40 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white hover:bg-zinc-800 transition-colors"
+      >
+        <Menu size={24} />
+      </button>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-4 md:p-8">
+          {currentView === 'dashboard' && (
+            <Dashboard
+              transactions={transactions}
+              categories={categories}
+              insights={insights}
+              isInsightsLoading={isInsightsLoading}
+            />
+          )}
+          {currentView === 'records' && (
+            <Records
+              transactions={transactions}
+              categories={categories}
+              onAddTransaction={handleOpenAddModal}
+              onEditTransaction={handleOpenEditModal}
+              onDeleteTransaction={handleDeleteTransaction}
+            />
+          )}
+          {currentView === 'settings' && (
+            <Settings />
+          )}
+        </div>
       </main>
 
       {/* Transaction Modal (Add/Edit) */}
