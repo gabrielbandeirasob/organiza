@@ -7,6 +7,7 @@ import Settings from './components/Settings';
 import { Auth } from './components/Auth';
 import { Transaction, TransactionType, Category, View, AIInsight, DEFAULT_CATEGORIES } from './types';
 import { transactionService } from './services/transactionService';
+import { categoryService } from './services/categoryService';
 import { generateFinancialInsights } from './services/geminiService';
 import { supabase } from './lib/supabase';
 import { X, Sliders, Plus, Trash2, Loader2, Menu } from 'lucide-react';
@@ -60,17 +61,37 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (session) {
-      loadTransactions();
+      loadData();
     }
   }, [session]);
+
+  const loadData = async () => {
+    await Promise.all([
+      loadTransactions(),
+      loadCategories()
+    ]);
+  };
 
   const loadTransactions = async () => {
     try {
       const data = await transactionService.fetchAll();
       setTransactions(data);
-      // In a real app we would load categories from DB too
     } catch (error) {
       console.error('Error loading transactions:', error);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoryService.fetchAll();
+      if (data.length > 0) {
+        setCategories(data);
+      } else {
+        // If user has no categories, we could seed them or keep defaults
+        // For now, let's keep DEFAULT_CATEGORIES if DB is empty
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
     }
   };
 
@@ -159,21 +180,34 @@ const App: React.FC = () => {
     }
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     const trimmed = tempCatName.trim();
     if (trimmed && !categories.includes(trimmed)) {
-      setCategories([...categories, trimmed]);
-      setTempCatName('');
-      // In future: Save category to DB
+      try {
+        await categoryService.create(trimmed);
+        setCategories([...categories, trimmed]);
+        setTempCatName('');
+      } catch (error) {
+        console.error('Error adding category:', error);
+        alert('Erro ao adicionar categoria');
+      }
     }
   };
 
-  const handleRemoveCategory = (cat: string) => {
+  const handleRemoveCategory = async (cat: string) => {
     if (categories.length > 1) {
-      const updated = categories.filter(c => c !== cat);
-      setCategories(updated);
-      if (newCategory === cat) {
-        setNewCategory(updated[0]);
+      try {
+        if (confirm(`Deseja excluir a categoria "${cat}"? Transações existentes NÃO serão excluídas, mas ficarão sem uma categoria válida na lista.`)) {
+          await categoryService.delete(cat);
+          const updated = categories.filter(c => c !== cat);
+          setCategories(updated);
+          if (newCategory === cat) {
+            setNewCategory(updated[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error removing category:', error);
+        alert('Erro ao remover categoria. Verifique se existem transações usando esta categoria.');
       }
     }
   };
