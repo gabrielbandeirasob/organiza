@@ -14,6 +14,7 @@ interface RecordsProps {
 const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransaction, onEditTransaction, onDeleteTransaction }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState(''); // '' means all
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 1); // Default to last 30 days
@@ -49,13 +50,14 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
         t.category.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCategory = !categoryFilter || t.category === categoryFilter;
+      const matchesType = !typeFilter || t.type === typeFilter;
 
       const transactionDate = parseDateLocal(t.date);
       const matchesDate = transactionDate >= start && transactionDate <= end;
 
-      return matchesSearch && matchesCategory && matchesDate;
+      return matchesSearch && matchesCategory && matchesType && matchesDate;
     });
-  }, [transactions, searchTerm, categoryFilter, startDate, endDate]);
+  }, [transactions, searchTerm, categoryFilter, typeFilter, startDate, endDate]);
 
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -100,6 +102,18 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
             >
               <option value="">Todas Categorias</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
+            >
+              <option value="">Todos Tipos</option>
+              <option value={TransactionType.INCOME}>Entradas</option>
+              <option value={TransactionType.EXPENSE}>Saídas</option>
             </select>
             <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-1.5 rounded-xl">
               <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
