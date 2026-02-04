@@ -12,7 +12,21 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insights, isInsightsLoading }) => {
-  const [dateFilter, setDateFilter] = React.useState('7d');
+  const [startDate, setStartDate] = React.useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+  const [endDate, setEndDate] = React.useState(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [categoryFilter, setCategoryFilter] = React.useState('all');
 
   // Helper to deal with local date strings (YYYY-MM-DD) without timezone shifts
@@ -24,28 +38,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
   };
 
   const filteredTransactions = useMemo(() => {
-    // Normalize "Now" to start of day (Local Midnight) to avoid time discrepancies
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    // Parse filter dates (YYYY-MM-DD interpreted as local)
+    const [sYear, sMonth, sDay] = startDate.split('-').map(Number);
+    const start = new Date(sYear, sMonth - 1, sDay);
 
-    const filterDate = new Date(now);
-
-    if (dateFilter === '7d') filterDate.setDate(now.getDate() - 6); // inclusive today + 6 past days = 7 days
-    else if (dateFilter === '30d') filterDate.setDate(now.getDate() - 29);
-    else if (dateFilter === '90d') filterDate.setDate(now.getDate() - 89);
-    else if (dateFilter === 'year') filterDate.setFullYear(now.getFullYear() - 1);
-    else filterDate.setFullYear(1970); // All time
+    const [eYear, eMonth, eDay] = endDate.split('-').map(Number);
+    const end = new Date(eYear, eMonth - 1, eDay);
+    end.setHours(23, 59, 59, 999);
 
     return transactions.filter(t => {
-      // Parse transaction date explicitly as Local Date to match filterDate
       const [year, month, day] = t.date.split('-').map(Number);
       const transactionDate = new Date(year, month - 1, day);
 
-      const matchesDate = transactionDate >= filterDate;
+      const matchesDate = transactionDate >= start && transactionDate <= end;
       const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
       return matchesDate && matchesCategory;
     });
-  }, [transactions, dateFilter, categoryFilter]);
+  }, [transactions, startDate, endDate, categoryFilter]);
 
   const stats = useMemo(() => {
     const income = filteredTransactions
@@ -69,41 +78,19 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
   }, [filteredTransactions]);
 
   const chartData = useMemo(() => {
-    // Determine the date range based on the filter
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Local Midnight
+    // Parse filter dates (YYYY-MM-DD interpreted as local)
+    const [sYear, sMonth, sDay] = startDate.split('-').map(Number);
+    const start = new Date(sYear, sMonth - 1, sDay);
 
-    let startDate = new Date(now);
-    let daysToGenerate = 7;
+    const [eYear, eMonth, eDay] = endDate.split('-').map(Number);
+    const end = new Date(eYear, eMonth - 1, eDay);
 
-    if (dateFilter === '7d') {
-      startDate.setDate(now.getDate() - 6); // inclusive
-      daysToGenerate = 7;
-    } else if (dateFilter === '30d') {
-      startDate.setDate(now.getDate() - 29);
-      daysToGenerate = 30;
-    } else if (dateFilter === '90d') {
-      startDate.setDate(now.getDate() - 89);
-      daysToGenerate = 90;
-    } else if (dateFilter === 'year') {
-      startDate.setFullYear(now.getFullYear() - 1);
-      daysToGenerate = 365;
-    } else {
-      // For 'all'
-      if (transactions.length > 0) {
-        const sorted = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const diffTime = end.getTime() - start.getTime();
+    const daysToGenerate = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
 
-        // Parse start date as Local
-        const [y, m, d] = sorted[0].date.split('-').map(Number);
-        startDate = new Date(y, m - 1, d);
-
-        const diffTime = Math.abs(now.getTime() - startDate.getTime());
-        daysToGenerate = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      } else {
-        startDate.setDate(now.getDate() - 29);
-        daysToGenerate = 30;
-      }
-    }
+    // Limit days to generate to prevent performance issues (e.g., 2 years max)
+    const MAX_DAYS = 730;
+    const finalDays = Math.min(daysToGenerate, MAX_DAYS);
 
     // Group expenses by date
     const dailyExpenses: Record<string, number> = {};
@@ -115,27 +102,17 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
       }
     });
 
-    // Generate array of dates for the chart
-    // If range is huge (>90 days), we might want to aggregate differently, but for now let's keep it daily per request
-    // To avoid performance issues/clutter on 'year', maybe we check daysToGenerate
-
     const dataPoints = [];
-    const daysMap = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+    const currentIterDate = new Date(start);
 
-    // Clone start date to iterate
-    const currentIterDate = new Date(startDate);
-
-    // Safety cap to prevent browser hang if 'all' is 10 years
+    // If we have too many points, use a step to avoid UI lag
     const MAX_POINTS = 366;
-    const step = daysToGenerate > MAX_POINTS ? Math.ceil(daysToGenerate / MAX_POINTS) : 1;
+    const step = finalDays > MAX_POINTS ? Math.ceil(finalDays / MAX_POINTS) : 1;
 
-    for (let i = 0; i < daysToGenerate; i += step) {
-      // If stepping, we might miss exact matches, but this is a visualization safeguard. 
-      // For standard "year" (365), it works fine 1 by 1.
-
+    for (let i = 0; i < finalDays; i += step) {
       const dateStr = getLocalDateString(currentIterDate);
 
-      // Match standard DD/MM format from screenshot for all views
+      // Match standard DD/MM format
       const day = String(currentIterDate.getDate()).padStart(2, '0');
       const month = String(currentIterDate.getMonth() + 1).padStart(2, '0');
       const label = `${day}/${month}`;
@@ -147,11 +124,10 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
       });
 
       currentIterDate.setDate(currentIterDate.getDate() + 1);
-      if (currentIterDate > now) break; // Don't go into future
     }
 
     return dataPoints;
-  }, [filteredTransactions, dateFilter, transactions]);
+  }, [filteredTransactions, startDate, endDate]);
 
   const categoryData = useMemo(() => {
     // Aggregate expenses by category directly from transactions
@@ -186,21 +162,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
         </div>
         <div className="flex gap-3">
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-              <select
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
-              >
-                <option value="7d">Últimos 7 dias</option>
-                <option value="30d">Últimos 30 dias</option>
-                <option value="90d">Últimos 90 dias</option>
-                <option value="year">Último ano</option>
-                <option value="all">Todo o período</option>
-                {/* <option value="custom">Personalizado</option> */}
-              </select>
+          {/* Custom Date Filters */}
+          <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-6">
+            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-3 py-2">
+              <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
+              />
+              <span className="text-[10px] text-zinc-500 font-bold uppercase ml-2">Até</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
+              />
             </div>
 
             <div className="relative">
