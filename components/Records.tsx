@@ -64,15 +64,15 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
-      <header className="flex justify-between items-center mb-8">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pl-16 md:pl-0 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white mb-1">Meus Registros</h2>
-          <p className="text-zinc-500 text-sm">Acompanhe suas transações dinâmicas.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Meus Registros</h2>
+          <p className="text-zinc-500 text-xs md:text-sm">Acompanhe suas transações dinâmicas.</p>
         </div>
         <button
           onClick={onAddTransaction}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+          className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
         >
           <Plus size={18} />
           Adicionar Registro
@@ -91,14 +91,14 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
               className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all"
             />
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <select
               value={categoryFilter}
               onChange={(e) => {
                 setCategoryFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
+              className="w-full sm:w-auto bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
             >
               <option value="">Todas Categorias</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -109,33 +109,37 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                 setTypeFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
+              className="w-full sm:w-auto bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
             >
               <option value="">Todos Tipos</option>
               <option value={TransactionType.INCOME}>Entradas</option>
               <option value={TransactionType.EXPENSE}>Saídas</option>
             </select>
-            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-1.5 rounded-xl">
-              <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
-              />
-              <span className="text-[10px] text-zinc-500 font-bold uppercase">Até</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
-              />
+            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-xl w-full sm:w-auto justify-between sm:justify-start">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-zinc-500 font-bold uppercase">De</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-zinc-500 font-bold uppercase">Até</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0"
+                />
+              </div>
             </div>
           </div>
         </div>

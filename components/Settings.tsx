@@ -50,30 +50,30 @@ const Settings: React.FC = () => {
   const displayName = session?.user?.user_metadata?.full_name || (userEmail !== 'Carregando...' ? userEmail.split('@')[0] : '...');
 
   return (
-    <div className="p-8 max-w-4xl mx-auto animate-in fade-in duration-700">
-      <header className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Meu Perfil</h2>
-        <p className="text-zinc-500 text-sm">Gerencie seu perfil e detalhes da conta.</p>
+    <div className="p-4 md:p-8 max-w-4xl mx-auto animate-in fade-in duration-700">
+      <header className="mb-8 pl-16 md:pl-0">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Meu Perfil</h2>
+        <p className="text-zinc-500 text-xs md:text-sm">Gerencie seu perfil e detalhes da conta.</p>
       </header>
 
       <div className="space-y-8">
         <div>
           <h4 className="text-lg font-bold text-white mb-6">Detalhes da Conta</h4>
           <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl divide-y divide-zinc-800">
-            <div className="p-5 flex items-center justify-between hover:bg-zinc-800/10 transition-colors group">
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-zinc-800/10 transition-colors group gap-3">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-zinc-950 text-zinc-500 group-hover:text-zinc-200 transition-colors rounded-xl border border-zinc-800">
                   <User size={18} />
                 </div>
                 <span className="text-sm font-medium text-zinc-400">Nome de Exibição</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 sm:justify-end">
                 {isEditingName ? (
                   <div className="flex items-center gap-2">
                     <input
                       value={newName}
                       onChange={(e) => setNewName(e.target.value)}
-                      className="bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full sm:w-auto bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500"
                       autoFocus
                     />
                     <button onClick={handleUpdateName} className="text-emerald-500 text-xs font-bold hover:underline">Salvar</button>
@@ -81,7 +81,7 @@ const Settings: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm font-bold text-zinc-100">{displayName}</span>
+                    <span className="text-sm font-bold text-zinc-100 truncate max-w-[150px] sm:max-w-none">{displayName}</span>
                     <button onClick={() => { setNewName(displayName); setIsEditingName(true); }} className="text-xs text-indigo-400 hover:text-indigo-300">Editar</button>
                   </>
                 )}
@@ -92,16 +92,16 @@ const Settings: React.FC = () => {
               { label: 'Endereço de E-mail', value: userEmail, icon: Mail },
               { label: 'Plano Atual', value: 'OrganizaFin Premium', icon: CreditCard, badge: 'Pro' },
             ].map((item, i) => (
-              <div key={i} className="p-5 flex items-center justify-between hover:bg-zinc-800/10 transition-colors group">
+              <div key={i} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-zinc-800/10 transition-colors group gap-3">
                 <div className="flex items-center gap-4">
                   <div className="p-2.5 bg-zinc-950 text-zinc-500 group-hover:text-zinc-200 transition-colors rounded-xl border border-zinc-800">
                     <item.icon size={18} />
                   </div>
                   <span className="text-sm font-medium text-zinc-400">{item.label}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-zinc-100">{item.value}</span>
-                  <ChevronRight size={14} className="text-zinc-700" />
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                  <span className="text-sm font-bold text-zinc-100 break-all sm:break-normal text-right">{item.value}</span>
+                  <ChevronRight size={14} className="text-zinc-700 flex-shrink-0" />
                 </div>
               </div>
             ))}
