@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Loader2 } from 'lucide-react';
+import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
 import { NoteFolder, Note } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -310,7 +310,7 @@ const Notes: React.FC = () => {
         <div className="flex h-full gap-0 min-h-[calc(100vh-4rem)]">
 
             {/* ── Left panel: Folders ── */}
-            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
+            <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${!selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
                 <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pastas</span>
                     <button
@@ -408,11 +408,20 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Middle panel: Notes list ── */}
-            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
+            <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
                 {selectedFolder ? (
                     <>
                         <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{selectedFolder.name}</span>
+                            <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                <button
+                                    onClick={() => setSelectedFolderId(null)}
+                                    className="md:hidden p-1 -ml-1 text-zinc-500 hover:text-zinc-300 flex-shrink-0"
+                                    title="Voltar"
+                                >
+                                    <ArrowLeft size={16} />
+                                </button>
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{selectedFolder.name}</span>
+                            </div>
                             <button
                                 onClick={() => { setIsCreatingNote(true); setNewNoteTitle(''); }}
                                 className="p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800 transition-colors flex-shrink-0"
@@ -494,20 +503,29 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Right panel: Note editor ── */}
-            <div className="flex-1 flex flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden">
+            <div className={`flex-1 flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden ${selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
                 {selectedNote ? (
                     <>
                         {/* Editor header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#121420]/40">
-                            <input
-                                value={editingNoteTitle}
-                                onChange={e => {
-                                    setEditingNoteTitle(e.target.value);
-                                    scheduleNoteSave(e.target.value, editingNoteContent);
-                                }}
-                                placeholder="Título da nota..."
-                                className="flex-1 bg-transparent text-lg font-bold text-white focus:outline-none placeholder:text-zinc-700 mr-4"
-                            />
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-zinc-800 bg-[#121420]/40">
+                            <div className="flex items-center flex-1 overflow-hidden mr-4">
+                                <button
+                                    onClick={() => setSelectedNoteId(null)}
+                                    className="md:hidden p-1 mr-2 -ml-1 text-zinc-500 hover:text-zinc-300 flex-shrink-0"
+                                    title="Voltar"
+                                >
+                                    <ArrowLeft size={16} />
+                                </button>
+                                <input
+                                    value={editingNoteTitle}
+                                    onChange={e => {
+                                        setEditingNoteTitle(e.target.value);
+                                        scheduleNoteSave(e.target.value, editingNoteContent);
+                                    }}
+                                    placeholder="Título da nota..."
+                                    className="flex-1 bg-transparent text-lg font-bold text-white focus:outline-none placeholder:text-zinc-700 min-w-0 w-full"
+                                />
+                            </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-[10px] text-zinc-600 hidden sm:block">
                                     {formatDate(selectedNote.updatedAt)}
