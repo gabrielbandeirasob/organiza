@@ -14,6 +14,57 @@ export type Database = {
     }
     public: {
         Tables: {
+            folders: {
+                Row: {
+                    created_at: string
+                    id: string
+                    name: string
+                    user_id: string
+                }
+                Insert: {
+                    created_at?: string
+                    id?: string
+                    name: string
+                    user_id: string
+                }
+                Update: {
+                    created_at?: string
+                    id?: string
+                    name?: string
+                    user_id?: string
+                }
+                Relationships: []
+            },
+            notes: {
+                Row: {
+                    content: string | null
+                    created_at: string
+                    folder_id: string | null
+                    id: string
+                    title: string
+                    updated_at: string
+                    user_id: string
+                }
+                Insert: {
+                    content?: string | null
+                    created_at?: string
+                    folder_id?: string | null
+                    id?: string
+                    title: string
+                    updated_at?: string
+                    user_id: string
+                }
+                Update: {
+                    content?: string | null
+                    created_at?: string
+                    folder_id?: string | null
+                    id?: string
+                    title?: string
+                    updated_at?: string
+                    user_id?: string
+                }
+                Relationships: []
+            },
             categories: {
                 Row: {
                     created_at: string | null
