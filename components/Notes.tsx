@@ -311,7 +311,7 @@ const Notes: React.FC = () => {
 
             {/* ── Left panel: Folders ── */}
             <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${!selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
-                <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
+                <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 pl-16 md:pl-4">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pastas</span>
                     <button
                         onClick={() => { setIsCreatingFolder(true); setNewFolderName(''); }}
@@ -411,7 +411,7 @@ const Notes: React.FC = () => {
             <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
                 {selectedFolder ? (
                     <>
-                        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
+                        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 pl-16 md:pl-4">
                             <div className="flex items-center gap-2 overflow-hidden flex-1">
                                 <button
                                     onClick={() => setSelectedFolderId(null)}
@@ -507,7 +507,7 @@ const Notes: React.FC = () => {
                 {selectedNote ? (
                     <>
                         {/* Editor header */}
-                        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-zinc-800 bg-[#121420]/40">
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-zinc-800 bg-[#121420]/40 pl-16 md:pl-6">
                             <div className="flex items-center flex-1 overflow-hidden mr-4">
                                 <button
                                     onClick={() => setSelectedNoteId(null)}
