@@ -144,6 +144,44 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
           </div>
         </div>
 
+        {categoryFilter && (
+          <div className="px-6 py-4 bg-emerald-500/5 border-b border-zinc-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                <Filter size={18} className="text-emerald-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Categoria: <span className="text-emerald-400">{categoryFilter}</span></h3>
+                <p className="text-xs text-zinc-500">{filteredTransactions.length} registros no período selecionado</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Entradas</p>
+                <p className="text-sm font-bold text-emerald-500">
+                  R$ {filteredTransactions.filter(t => t.type === TransactionType.INCOME).reduce((acc, t) => acc + t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Saídas</p>
+                <p className="text-sm font-bold text-rose-500">
+                  R$ {filteredTransactions.filter(t => t.type === TransactionType.EXPENSE).reduce((acc, t) => acc + t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="h-8 w-px bg-zinc-800 mx-2 hidden md:block"></div>
+              <div className="text-right">
+                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Saldo Líquido</p>
+                <p className={`text-base font-bold ${filteredTransactions.reduce((acc, t) => t.type === TransactionType.INCOME ? acc + t.amount : acc - t.amount, 0) >= 0
+                    ? 'text-emerald-400'
+                    : 'text-rose-400'
+                  }`}>
+                  R$ {filteredTransactions.reduce((acc, t) => t.type === TransactionType.INCOME ? acc + t.amount : acc - t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
