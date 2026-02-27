@@ -51,21 +51,6 @@ const Notes: React.FC = () => {
                 const uid = session.user.id;
                 let data = loadData(uid);
 
-                // --- EMERGENCY RECOVERY BLOCK ---
-                // If the user's data is empty, we inject the recovered JSON provided manually
-                if (data.folders.length === 0 && data.notes.length === 0) {
-                    try {
-                        const recoveredJSON = '{"folders":[{"id":"rmvaboexqnmlwzr91w","name":"Consumo","createdAt":"2026-02-22T00:10:14.804Z"},{"id":"0r0y12hdkfdnmlwzt98q","name":"Dados pessoais","createdAt":"2026-02-22T00:11:48.362Z"}],"notes":[{"id":"3nmmi3p7pm9mlwzrg20","folderId":"rmvaboexqnmlwzr91w","title":"Combustivel","content":"\\njaneiro\\n\\n16/01/2026 - 20L\\n27/01/2026 - 20L\\n29/01/2026 - 20L\\n\\n\\nfevereiro \\n\\n14/02/2025 - 40L\\n19/02/2025 - 20L","updatedAt":"2026-02-22T00:12:53.833Z"},{"id":"1y4budhnbi2mlwzwlb1","folderId":"0r0y12hdkfdnmlwzt98q","title":"BM6","content":"BM/6\\nPergunta de segurança: cbmgo\\n\\n10.25.33.01\\n\\n5360 par 1 saad\\n4824 par 2 secip\\n6001 par 3 Cmt\\n\\nSenha vnc\\n\\naitdesv\\n\\nIp 38 major Cristiano \\n\\n Senha Roteador \\nadmin\\nredeguess\\n\\n\\n\\nTelefone voip setup\\nadmin\\n123456\\n\\n\\n1079 parte de informática \\n1075 suporte usuário \\n\\nMicrotik\\n\\nadminbm\\nssppmpcbm\\n\\nGmail redes:\\n\\ncbmgo.redes@gmail.com\\nssppmpcbm\\n\\n\\nVale card: 26745\\n \\nTelefone abertura chamados oi: 0800 031 8031\\n\\n1077\\n\\nauditorio@193\\n\\nRod","updatedAt":"2026-02-22T00:14:32.467Z"}]}';
-                        const recoveredData = JSON.parse(recoveredJSON);
-                        data = recoveredData;
-                        saveData(uid, data);
-                        console.log('[RECOVERY] Successfully injected manual backup data.');
-                    } catch (e) {
-                        console.error('[RECOVERY] Failed to parse manual backup:', e);
-                    }
-                }
-                // --------------------------------
-
                 setFolders(data.folders);
                 setNotes(data.notes);
                 // setUserId triggers the persistence useEffect, so we do it last
