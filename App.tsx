@@ -6,11 +6,13 @@ import Records from './components/Records';
 import Settings from './components/Settings';
 import { Auth } from './components/Auth';
 import Notes from './components/Notes';
-import { Transaction, TransactionType, Category, View, DEFAULT_CATEGORIES } from './types';
+import FixedCosts from './components/FixedCosts';
+import { Transaction, TransactionType, Category, View, AIInsight, DEFAULT_CATEGORIES } from './types';
 import { transactionService } from './services/transactionService';
 import { categoryService } from './services/categoryService';
-import { supabase } from './lib/supabase';
-import { X, Sliders, Plus, Trash2, Loader2, Menu } from 'lucide-react';
+import { generateFinancialInsights } from './services/geminiService';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { X, Sliders, Plus, Trash2, Loader2, Menu, AlertTriangle } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 
 const App: React.FC = () => {
@@ -20,6 +22,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [insights, setInsights] = useState<AIInsight[]>([]);
+  const [isInsightsLoading, setIsInsightsLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
@@ -43,9 +47,27 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setIsAuthLoading(false);
+      return;
+    }
+
+    // Safety timeout: If auth doesn't resolve in 5 seconds, stop loading
+    const timeoutId = setTimeout(() => {
+      if (isAuthLoading) {
+        console.warn('Auth loading timeout: Proceeding as unauthenticated');
+        setIsAuthLoading(false);
+      }
+    }, 5000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsAuthLoading(false);
+      clearTimeout(timeoutId);
+    }).catch(err => {
+      console.error('Auth error:', err);
+      setIsAuthLoading(false);
+      clearTimeout(timeoutId);
     });
 
     const {
@@ -54,7 +76,10 @@ const App: React.FC = () => {
       setSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -64,10 +89,14 @@ const App: React.FC = () => {
   }, [session]);
 
   const loadData = async () => {
-    await Promise.all([
-      loadTransactions(),
-      loadCategories()
-    ]);
+    try {
+      await Promise.all([
+        loadTransactions(),
+        loadCategories()
+      ]);
+    } catch (error) {
+      console.error('Error in loadData:', error);
+    }
   };
 
   const loadTransactions = async () => {
@@ -82,18 +111,32 @@ const App: React.FC = () => {
   const loadCategories = async () => {
     try {
       const data = await categoryService.fetchAll();
-      if (data.length > 0) {
+      if (data && data.length > 0) {
         setCategories(data);
       } else {
-        // If user has no categories, we could seed them or keep defaults
-        // For now, let's keep DEFAULT_CATEGORIES if DB is empty
+        // If user has no categories, seed them for a better first experience
+        console.log('No categories found, seeding defaults...');
+        await Promise.all(DEFAULT_CATEGORIES.map(cat => categoryService.create(cat).catch(() => { })));
+        const refreshed = await categoryService.fetchAll();
+        if (refreshed.length > 0) setCategories(refreshed);
       }
     } catch (error) {
       console.error('Error loading categories:', error);
     }
   };
 
-
+  // AI Insights temporarily disabled
+  // useEffect(() => {
+  //   if (transactions.length > 0) {
+  //     const fetchInsights = async () => {
+  //       setIsInsightsLoading(true);
+  //       const data = await generateFinancialInsights(transactions);
+  //       setInsights(data);
+  //       setIsInsightsLoading(false);
+  //     };
+  //     fetchInsights();
+  //   }
+  // }, [transactions.length]);
 
   const handleOpenAddModal = () => {
     setEditingTransaction(null);
@@ -203,6 +246,34 @@ const App: React.FC = () => {
     return <div className="flex h-screen items-center justify-center bg-[#0d0d0d] text-white"><Loader2 className="animate-spin" /></div>;
   }
 
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0d0d0d] text-white p-4">
+        <div className="w-full max-w-md space-y-6 bg-[#121420] p-8 rounded-2xl border border-zinc-800 text-center">
+          <div className="mx-auto w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="text-amber-500" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold">Configuração Necessária</h2>
+          <p className="text-zinc-400">
+            Para usar o <strong>OrganizaFin</strong>, você precisa configurar as variáveis de ambiente do Supabase.
+          </p>
+          <div className="bg-[#0a0b14] p-4 rounded-xl text-left border border-zinc-800/50 space-y-3">
+            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Passos para configurar:</p>
+            <ol className="text-sm text-zinc-300 space-y-2 list-decimal list-inside">
+              <li>Crie um projeto no <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1">Supabase</a></li>
+              <li>Abra o arquivo <code>.env.local</code> na raiz do projeto</li>
+              <li>Preencha <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code></li>
+              <li>Reinicie o servidor de desenvolvimento</li>
+            </ol>
+          </div>
+          <p className="text-xs text-zinc-500 italic">
+            A tela preta ocorria porque o sistema tentava conectar a um banco de dados inexistente.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) {
     return <Auth onLogin={() => { }} />;
   }
@@ -231,6 +302,8 @@ const App: React.FC = () => {
             <Dashboard
               transactions={transactions}
               categories={categories}
+              insights={insights}
+              isInsightsLoading={isInsightsLoading}
             />
           )}
           {currentView === 'records' && (
@@ -247,6 +320,9 @@ const App: React.FC = () => {
           )}
           {currentView === 'notes' && (
             <Notes />
+          )}
+          {currentView === 'fixed-costs' && (
+            <FixedCosts />
           )}
         </div>
       </main>

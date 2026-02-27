@@ -1,15 +1,17 @@
 
 import React, { useMemo } from 'react';
-import { Transaction, TransactionType, Category } from '../types';
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Calendar, Search } from 'lucide-react';
+import { Transaction, TransactionType, Category, AIInsight } from '../types';
+import { TrendingUp, TrendingDown, DollarSign, PieChart, Calendar, Search, Lightbulb, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 
 interface DashboardProps {
   transactions: Transaction[];
   categories: Category[];
+  insights: AIInsight[];
+  isInsightsLoading: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
+const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insights, isInsightsLoading }) => {
   const [startDate, setStartDate] = React.useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -45,7 +47,13 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
     end.setHours(23, 59, 59, 999);
 
     return transactions.filter(t => {
-      const [year, month, day] = t.date.split('-').map(Number);
+      if (!t || !t.date) return false;
+      const parts = t.date.split('-');
+      if (parts.length !== 3) return false;
+
+      const [year, month, day] = parts.map(Number);
+      if (isNaN(year) || isNaN(month) || isNaN(day)) return false;
+
       const transactionDate = new Date(year, month - 1, day);
 
       const matchesDate = transactionDate >= start && transactionDate <= end;
@@ -69,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
       }
     });
 
-    const topCategory = Object.entries(catStats).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+    const topCategory = Object.entries(catStats).sort((a, b) => b[1] - a[1])[0] || ['Nenhuma', 0];
     const dailyAvg = expense / (filteredTransactions.length || 1);
 
     return { income, expense, topCategory, dailyAvg };
@@ -133,10 +141,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
     const catTotals: Record<string, number> = {};
 
     filteredTransactions.forEach(t => {
-      if (t.type === TransactionType.EXPENSE) {
+      if (t.type === TransactionType.EXPENSE && t.category) {
         // Normalize category name: trim whitespace and ensure consistent casing if needed
-        // Assuming categories are stored consistently, but "Moradia " vs "Moradia" happens.
-        const normalizedCat = t.category.trim();
+        const normalizedCat = (t.category || 'Outro').trim();
         catTotals[normalizedCat] = (catTotals[normalizedCat] || 0) + t.amount;
       }
     });
@@ -152,39 +159,39 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
   }, [filteredTransactions]);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pl-16 md:pl-0">
-        <div className="mb-4 md:mb-0">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Visão Geral</h2>
-          <p className="text-zinc-500 text-xs md:text-sm">Bem-vindo de volta, aqui está o resumo das suas finanças.</p>
+    <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+      <header className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-1">Visão Geral</h2>
+          <p className="text-zinc-500 text-sm">Bem-vindo de volta, aqui está o resumo das suas finanças.</p>
         </div>
-        <div className="flex flex-col gap-3 w-full md:w-auto">
+        <div className="flex gap-3">
 
           {/* Custom Date Filters */}
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-2.5 py-2 w-full sm:w-auto justify-between sm:justify-start">
-              <span className="text-[9px] text-zinc-500 font-bold uppercase">De</span>
+          <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-6">
+            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-3 py-2">
+              <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0 w-[110px]"
+                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
               />
-              <span className="text-[9px] text-zinc-500 font-bold uppercase ml-1">Até</span>
+              <span className="text-[10px] text-zinc-500 font-bold uppercase ml-2">Até</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0 w-[110px]"
+                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
               />
             </div>
 
-            <div className="relative w-full sm:w-auto">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-9 pr-8 py-2 text-xs text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
+                className="appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
               >
                 <option value="all">Todas categorias</option>
                 {categories.map(cat => (
@@ -319,7 +326,31 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories }) => {
         </div>
       </div>
 
-
+      <section>
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          Insights Financeiros de IA
+          {isInsightsLoading && <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {insights.map((insight) => (
+            <div key={insight.id} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl hover:bg-zinc-900/60 transition-colors group relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2.5 rounded-xl ${insight.type === 'opportunity' ? 'bg-emerald-500/10 text-emerald-500' :
+                  insight.type === 'alert' ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'
+                  }`}>
+                  {insight.type === 'opportunity' && <Lightbulb size={20} />}
+                  {insight.type === 'alert' && <AlertTriangle size={20} />}
+                  {insight.type === 'info' && <CheckCircle2 size={20} />}
+                </div>
+                <h4 className="font-bold text-zinc-100">{insight.title}</h4>
+              </div>
+              <p className="text-sm text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                {insight.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

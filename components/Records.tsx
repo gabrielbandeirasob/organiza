@@ -35,7 +35,11 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
 
   // Helper to parse "YYYY-MM-DD" as local date
   const parseDateLocal = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!dateStr) return new Date();
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return new Date();
+    const [year, month, day] = parts.map(Number);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return new Date();
     return new Date(year, month - 1, day);
   };
 
@@ -64,15 +68,15 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pl-16 md:pl-0 gap-4">
+    <div className="p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+      <header className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">Meus Registros</h2>
-          <p className="text-zinc-500 text-xs md:text-sm">Acompanhe suas transações dinâmicas.</p>
+          <h2 className="text-3xl font-bold text-white mb-1">Meus Registros</h2>
+          <p className="text-zinc-500 text-sm">Acompanhe suas transações dinâmicas.</p>
         </div>
         <button
           onClick={onAddTransaction}
-          className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
         >
           <Plus size={18} />
           Adicionar Registro
@@ -91,14 +95,14 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
               className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex gap-2 w-full md:w-auto">
             <select
               value={categoryFilter}
               onChange={(e) => {
                 setCategoryFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full sm:w-auto bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
+              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
             >
               <option value="">Todas Categorias</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -109,78 +113,36 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                 setTypeFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full sm:w-auto bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
+              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
             >
               <option value="">Todos Tipos</option>
               <option value={TransactionType.INCOME}>Entradas</option>
               <option value={TransactionType.EXPENSE}>Saídas</option>
             </select>
-            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-xl w-full sm:w-auto justify-between sm:justify-start">
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] text-zinc-500 font-bold uppercase">De</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] text-zinc-500 font-bold uppercase">Até</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => {
-                    setEndDate(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0"
-                />
-              </div>
+            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-1.5 rounded-xl">
+              <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
+              />
+              <span className="text-[10px] text-zinc-500 font-bold uppercase">Até</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
+              />
             </div>
           </div>
         </div>
-
-        {categoryFilter && (
-          <div className="px-6 py-4 bg-emerald-500/5 border-b border-zinc-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                <Filter size={18} className="text-emerald-500" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Categoria: <span className="text-emerald-400">{categoryFilter}</span></h3>
-                <p className="text-xs text-zinc-500">{filteredTransactions.length} registros no período selecionado</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Entradas</p>
-                <p className="text-sm font-bold text-emerald-500">
-                  R$ {filteredTransactions.filter(t => t.type === TransactionType.INCOME).reduce((acc, t) => acc + t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Saídas</p>
-                <p className="text-sm font-bold text-rose-500">
-                  R$ {filteredTransactions.filter(t => t.type === TransactionType.EXPENSE).reduce((acc, t) => acc + t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="h-8 w-px bg-zinc-800 mx-2 hidden md:block"></div>
-              <div className="text-right">
-                <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Saldo Líquido</p>
-                <p className={`text-base font-bold ${filteredTransactions.reduce((acc, t) => t.type === TransactionType.INCOME ? acc + t.amount : acc - t.amount, 0) >= 0
-                    ? 'text-emerald-400'
-                    : 'text-rose-400'
-                  }`}>
-                  R$ {filteredTransactions.reduce((acc, t) => t.type === TransactionType.INCOME ? acc + t.amount : acc - t.amount, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">

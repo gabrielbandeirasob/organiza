@@ -15,7 +15,7 @@ export const Auth: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
         if (errorMsg.includes('Invalid login credentials')) return 'Email ou senha incorretos.';
         if (errorMsg.includes('Email not confirmed')) return 'Por favor, confirme seu e-mail antes de entrar.';
         if (errorMsg.includes('Password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
-        return `Erro: ${errorMsg}`;
+        return 'Ocorreu um erro. Tente novamente.';
     };
 
     const handleAuth = async (e: React.FormEvent) => {

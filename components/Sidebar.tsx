@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, FileText, User, Settings, Plus, LogOut, ChevronDown, HelpCircle, ShieldCheck, X, NotebookPen } from 'lucide-react';
+import { LayoutDashboard, FileText, User, Settings, Plus, LogOut, ChevronDown, HelpCircle, ShieldCheck, X, NotebookPen, CalendarClock } from 'lucide-react';
 import { View } from '../types';
 import { supabase } from '../lib/supabase';
 import { Session } from '@supabase/supabase-js';
@@ -35,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, onAddTra
   const menuItems = [
     { id: 'dashboard', label: 'Painel', icon: LayoutDashboard },
     { id: 'records', label: 'Registros', icon: FileText },
+    { id: 'fixed-costs', label: 'Custos Fixos', icon: CalendarClock },
     { id: 'notes', label: 'Notas', icon: NotebookPen },
     { id: 'settings', label: 'Meu Perfil', icon: User },
   ];

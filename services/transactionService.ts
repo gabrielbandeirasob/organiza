@@ -7,14 +7,19 @@ type TransactionRow = Database['public']['Tables']['transactions']['Row'];
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
 
 // Mapping helpers
-const mapRowToTransaction = (row: TransactionRow): Transaction => ({
-    id: row.id,
-    date: row.date || '',
-    description: row.description || '',
-    amount: Number(row.amount),
-    category: (row.category || 'Outros') as Category,
-    type: row.type === 'income' ? TransactionType.INCOME : TransactionType.EXPENSE,
-});
+const mapRowToTransaction = (row: TransactionRow): Transaction => {
+    if (!row) {
+        throw new Error('Attempted to map a null transaction row');
+    }
+    return {
+        id: row.id,
+        date: row.date || new Date().toISOString().split('T')[0],
+        description: row.description || 'Sem descrição',
+        amount: typeof row.amount === 'number' ? row.amount : Number(row.amount || 0),
+        category: (row.category || 'Outro') as Category,
+        type: (row.type === 'income' ? TransactionType.INCOME : TransactionType.EXPENSE),
+    };
+};
 
 const mapTransactionToInsert = (t: Omit<Transaction, 'id'>, userId: string): TransactionInsert => ({
     description: t.description,

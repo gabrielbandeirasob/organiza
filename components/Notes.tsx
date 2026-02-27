@@ -1,23 +1,24 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Download } from 'lucide-react';
 import { NoteFolder, Note } from '../types';
 import { supabase } from '../lib/supabase';
 
-// Helper to map Supabase snake_case to our app's camelCase Note type
-const mapNote = (n: any): Note => ({
-    id: n.id,
-    folderId: n.folder_id,
-    title: n.title,
-    content: n.content,
-    updatedAt: n.updated_at
-});
+const generateId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-// Helper to map Supabase snake_case to our app's camelCase NoteFolder type
-const mapFolder = (f: any): NoteFolder => ({
-    id: f.id,
-    name: f.name,
-    createdAt: f.created_at
-});
+const STORAGE_KEY_PREFIX = 'organiza_notes_';
+
+function loadData(userId: string): { folders: NoteFolder[]; notes: Note[] } {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY_PREFIX + userId);
+        if (raw) return JSON.parse(raw);
+    } catch { /* ignore */ }
+    return { folders: [], notes: [] };
+}
+
+function saveData(userId: string, data: { folders: NoteFolder[]; notes: Note[] }) {
+    localStorage.setItem(STORAGE_KEY_PREFIX + userId, JSON.stringify(data));
+}
 
 const Notes: React.FC = () => {
     const [userId, setUserId] = useState<string | null>(null);
@@ -25,7 +26,6 @@ const Notes: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([]);
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     // Folder editing state
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
@@ -44,56 +44,42 @@ const Notes: React.FC = () => {
     const newNoteInputRef = useRef<HTMLInputElement>(null);
     const folderEditInputRef = useRef<HTMLInputElement>(null);
 
-    // Load user and fetch real data from Supabase
+    // Load user and data
     useEffect(() => {
-        let isMounted = true;
-
-        async function fetchNotesData() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session?.user?.id) {
-                    if (isMounted) setIsLoading(false);
-                    return;
-                }
-
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user?.id) {
                 const uid = session.user.id;
-                if (isMounted) setUserId(uid);
+                let data = loadData(uid);
 
-                // Fetch Folders
-                const { data: foldersData, error: foldersError } = await supabase
-                    .from('folders')
-                    .select('*')
-                    .eq('user_id', uid)
-                    .order('created_at', { ascending: true });
-
-                if (foldersError) throw foldersError;
-
-                // Fetch Notes
-                const { data: notesData, error: notesError } = await supabase
-                    .from('notes')
-                    .select('*')
-                    .eq('user_id', uid)
-                    .order('updated_at', { ascending: false });
-
-                if (notesError) throw notesError;
-
-                if (isMounted) {
-                    setFolders((foldersData || []).map(mapFolder));
-                    setNotes((notesData || []).map(mapNote));
-                    setIsLoading(false);
+                // --- EMERGENCY RECOVERY BLOCK ---
+                // If the user's data is empty, we inject the recovered JSON provided manually
+                if (data.folders.length === 0 && data.notes.length === 0) {
+                    try {
+                        const recoveredJSON = '{"folders":[{"id":"rmvaboexqnmlwzr91w","name":"Consumo","createdAt":"2026-02-22T00:10:14.804Z"},{"id":"0r0y12hdkfdnmlwzt98q","name":"Dados pessoais","createdAt":"2026-02-22T00:11:48.362Z"}],"notes":[{"id":"3nmmi3p7pm9mlwzrg20","folderId":"rmvaboexqnmlwzr91w","title":"Combustivel","content":"\\njaneiro\\n\\n16/01/2026 - 20L\\n27/01/2026 - 20L\\n29/01/2026 - 20L\\n\\n\\nfevereiro \\n\\n14/02/2025 - 40L\\n19/02/2025 - 20L","updatedAt":"2026-02-22T00:12:53.833Z"},{"id":"1y4budhnbi2mlwzwlb1","folderId":"0r0y12hdkfdnmlwzt98q","title":"BM6","content":"BM/6\\nPergunta de segurança: cbmgo\\n\\n10.25.33.01\\n\\n5360 par 1 saad\\n4824 par 2 secip\\n6001 par 3 Cmt\\n\\nSenha vnc\\n\\naitdesv\\n\\nIp 38 major Cristiano \\n\\n Senha Roteador \\nadmin\\nredeguess\\n\\n\\n\\nTelefone voip setup\\nadmin\\n123456\\n\\n\\n1079 parte de informática \\n1075 suporte usuário \\n\\nMicrotik\\n\\nadminbm\\nssppmpcbm\\n\\nGmail redes:\\n\\ncbmgo.redes@gmail.com\\nssppmpcbm\\n\\n\\nVale card: 26745\\n \\nTelefone abertura chamados oi: 0800 031 8031\\n\\n1077\\n\\nauditorio@193\\n\\nRod","updatedAt":"2026-02-22T00:14:32.467Z"}]}';
+                        const recoveredData = JSON.parse(recoveredJSON);
+                        data = recoveredData;
+                        saveData(uid, data);
+                        console.log('[RECOVERY] Successfully injected manual backup data.');
+                    } catch (e) {
+                        console.error('[RECOVERY] Failed to parse manual backup:', e);
+                    }
                 }
-            } catch (error) {
-                console.error("Error loading notes:", error);
-                if (isMounted) setIsLoading(false);
+                // --------------------------------
+
+                setFolders(data.folders);
+                setNotes(data.notes);
+                // setUserId triggers the persistence useEffect, so we do it last
+                setUserId(uid);
+            } else {
+                console.warn('[NOTES] No session found');
             }
-        }
-
-        fetchNotesData();
-
-        return () => {
-            isMounted = false;
-        };
+        });
     }, []);
+
+    // Persist whenever folders or notes change
+    useEffect(() => {
+        if (userId) saveData(userId, { folders, notes });
+    }, [folders, notes, userId]);
 
     // Auto-focus new folder input
     useEffect(() => {
@@ -122,114 +108,48 @@ const Notes: React.FC = () => {
         }
     }, [selectedNoteId]);
 
-    // Debounced auto-save for note content to Supabase
+    // Debounced auto-save for note content
     const scheduleNoteSave = useCallback((title: string, content: string) => {
-        if (!selectedNoteId || !userId) return;
-
-        // Optimistic UI update
-        const updatedTime = new Date().toISOString();
-        setNotes(prev =>
-            prev.map(n =>
-                n.id === selectedNoteId
-                    ? { ...n, title, content, updatedAt: updatedTime }
-                    : n
-            )
-        );
-
+        if (!selectedNoteId) return;
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-
-        saveTimerRef.current = setTimeout(async () => {
-            try {
-                const { error } = await supabase
-                    .from('notes')
-                    .update({
-                        title,
-                        content,
-                        updated_at: updatedTime
-                    })
-                    .eq('id', selectedNoteId)
-                    .eq('user_id', userId);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error("Error automatically saving note:", error);
-                // Ideally, show a toast notification here to warn the user that the save failed
-            }
-        }, 1000); // 1s debounce to avoid spamming the DB
-    }, [selectedNoteId, userId]);
+        saveTimerRef.current = setTimeout(() => {
+            setNotes(prev =>
+                prev.map(n =>
+                    n.id === selectedNoteId
+                        ? { ...n, title, content, updatedAt: new Date().toISOString() }
+                        : n
+                )
+            );
+        }, 500);
+    }, [selectedNoteId]);
 
     // ── Folder actions ──────────────────────────────────────────────
 
-    const handleCreateFolder = async () => {
+    const handleCreateFolder = () => {
         const name = newFolderName.trim();
-        if (!name || !userId) { setIsCreatingFolder(false); return; }
-
-        try {
-            const { data, error } = await supabase
-                .from('folders')
-                .insert({ name, user_id: userId })
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            const folder = mapFolder(data);
-            setFolders(prev => [...prev, folder]);
-            setSelectedFolderId(folder.id);
-            setSelectedNoteId(null);
-            setNewFolderName('');
-            setIsCreatingFolder(false);
-        } catch (error) {
-            console.error("Error creating folder:", error);
-            alert("Ocorreu um erro ao criar a pasta no banco de dados.");
-        }
+        if (!name) { setIsCreatingFolder(false); return; }
+        const folder: NoteFolder = { id: generateId(), name, createdAt: new Date().toISOString() };
+        setFolders(prev => [...prev, folder]);
+        setSelectedFolderId(folder.id);
+        setSelectedNoteId(null);
+        setNewFolderName('');
+        setIsCreatingFolder(false);
     };
 
-    const handleRenameFolder = async (id: string) => {
+    const handleRenameFolder = (id: string) => {
         const name = editingFolderName.trim();
-        if (!name || !userId) { setEditingFolderId(null); return; }
-
-        // Optimistic UI update
+        if (!name) { setEditingFolderId(null); return; }
         setFolders(prev => prev.map(f => f.id === id ? { ...f, name } : f));
         setEditingFolderId(null);
-
-        try {
-            const { error } = await supabase
-                .from('folders')
-                .update({ name })
-                .eq('id', id)
-                .eq('user_id', userId);
-
-            if (error) throw error;
-        } catch (error) {
-            console.error("Error renaming folder:", error);
-            // Revert state if we want, currently keeping it simple
-        }
     };
 
-    const handleDeleteFolder = async (id: string) => {
-        if (!userId || !confirm('Excluir esta pasta e todas as suas notas definitivamente da conta?')) return;
-
-        // Due to "ON DELETE CASCADE" in SQL, deleting the folder clears its notes in the DB
-        try {
-            const { error } = await supabase
-                .from('folders')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', userId);
-
-            if (error) throw error;
-
-            setFolders(prev => prev.filter(f => f.id !== id));
-            setNotes(prev => prev.filter(n => n.folderId !== id));
-
-            if (selectedFolderId === id) {
-                setSelectedFolderId(null);
-                setSelectedNoteId(null);
-            }
-        } catch (error) {
-            console.error("Error deleting folder:", error);
-            alert("Não foi possível excluir a pasta.");
+    const handleDeleteFolder = (id: string) => {
+        if (!confirm('Excluir esta pasta e todas as suas notas?')) return;
+        setFolders(prev => prev.filter(f => f.id !== id));
+        setNotes(prev => prev.filter(n => n.folderId !== id));
+        if (selectedFolderId === id) {
+            setSelectedFolderId(null);
+            setSelectedNoteId(null);
         }
     };
 
@@ -240,53 +160,41 @@ const Notes: React.FC = () => {
 
     // ── Note actions ────────────────────────────────────────────────
 
-    const handleCreateNote = async () => {
-        if (!selectedFolderId || !userId) return;
-
+    const handleCreateNote = () => {
+        if (!selectedFolderId) return;
         const title = newNoteTitle.trim() || 'Nova Nota';
-
-        try {
-            const { data, error } = await supabase
-                .from('notes')
-                .insert({
-                    title,
-                    content: '',
-                    folder_id: selectedFolderId,
-                    user_id: userId
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            const note = mapNote(data);
-            setNotes(prev => [note, ...prev]);
-            setSelectedNoteId(note.id);
-            setNewNoteTitle('');
-            setIsCreatingNote(false);
-        } catch (error) {
-            console.error("Error creating note:", error);
-            alert("Falha ao criar nota no banco.");
-        }
+        const note: Note = {
+            id: generateId(),
+            folderId: selectedFolderId,
+            title,
+            content: '',
+            updatedAt: new Date().toISOString(),
+        };
+        setNotes(prev => [...prev, note]);
+        setSelectedNoteId(note.id);
+        setNewNoteTitle('');
+        setIsCreatingNote(false);
     };
 
-    const handleDeleteNote = async (id: string) => {
-        if (!userId || !confirm('Excluir esta nota permanentemente?')) return;
+    const handleDeleteNote = (id: string) => {
+        if (!confirm('Excluir esta nota?')) return;
+        setNotes(prev => prev.filter(n => n.id !== id));
+        if (selectedNoteId === id) setSelectedNoteId(null);
+    };
 
-        try {
-            const { error } = await supabase
-                .from('notes')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', userId);
+    const handleDownloadNote = () => {
+        if (!selectedNote) return;
 
-            if (error) throw error;
-
-            setNotes(prev => prev.filter(n => n.id !== id));
-            if (selectedNoteId === id) setSelectedNoteId(null);
-        } catch (error) {
-            console.error("Error deleting note:", error);
-        }
+        const content = `${selectedNote.title}\n\n${selectedNote.content}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedNote.title || 'nota'}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     const folderNotes = notes.filter(n => n.folderId === selectedFolderId);
@@ -298,20 +206,12 @@ const Notes: React.FC = () => {
         return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <Loader2 className="animate-spin text-emerald-500 w-8 h-8" />
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-full gap-0 min-h-[calc(100vh-4rem)]">
 
             {/* ── Left panel: Folders ── */}
-            <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${!selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
-                <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 pl-16 md:pl-4">
+            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
+                <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pastas</span>
                     <button
                         onClick={() => { setIsCreatingFolder(true); setNewFolderName(''); }}
@@ -408,20 +308,11 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Middle panel: Notes list ── */}
-            <div className={`flex-shrink-0 md:border-r border-zinc-800 flex-col bg-[#0d0d0d] rounded-xl md:mr-4 w-full md:w-56 ${selectedFolderId && !selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
+            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
                 {selectedFolder ? (
                     <>
-                        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800 pl-16 md:pl-4">
-                            <div className="flex items-center gap-2 overflow-hidden flex-1">
-                                <button
-                                    onClick={() => setSelectedFolderId(null)}
-                                    className="md:hidden p-1 -ml-1 text-zinc-500 hover:text-zinc-300 flex-shrink-0"
-                                    title="Voltar"
-                                >
-                                    <ArrowLeft size={16} />
-                                </button>
-                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{selectedFolder.name}</span>
-                            </div>
+                        <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{selectedFolder.name}</span>
                             <button
                                 onClick={() => { setIsCreatingNote(true); setNewNoteTitle(''); }}
                                 className="p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800 transition-colors flex-shrink-0"
@@ -503,33 +394,31 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Right panel: Note editor ── */}
-            <div className={`flex-1 flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden ${selectedNoteId ? 'flex' : 'hidden md:flex'}`}>
+            <div className="flex-1 flex flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden">
                 {selectedNote ? (
                     <>
                         {/* Editor header */}
-                        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-zinc-800 bg-[#121420]/40 pl-16 md:pl-6">
-                            <div className="flex items-center flex-1 overflow-hidden mr-4">
-                                <button
-                                    onClick={() => setSelectedNoteId(null)}
-                                    className="md:hidden p-1 mr-2 -ml-1 text-zinc-500 hover:text-zinc-300 flex-shrink-0"
-                                    title="Voltar"
-                                >
-                                    <ArrowLeft size={16} />
-                                </button>
-                                <input
-                                    value={editingNoteTitle}
-                                    onChange={e => {
-                                        setEditingNoteTitle(e.target.value);
-                                        scheduleNoteSave(e.target.value, editingNoteContent);
-                                    }}
-                                    placeholder="Título da nota..."
-                                    className="flex-1 bg-transparent text-lg font-bold text-white focus:outline-none placeholder:text-zinc-700 min-w-0 w-full"
-                                />
-                            </div>
-                            <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#121420]/40">
+                            <input
+                                value={editingNoteTitle}
+                                onChange={e => {
+                                    setEditingNoteTitle(e.target.value);
+                                    scheduleNoteSave(e.target.value, editingNoteContent);
+                                }}
+                                placeholder="Título da nota..."
+                                className="flex-1 bg-transparent text-lg font-bold text-white focus:outline-none placeholder:text-zinc-700 mr-4"
+                            />
+                            <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-zinc-600 hidden sm:block">
                                     {formatDate(selectedNote.updatedAt)}
                                 </span>
+                                <button
+                                    onClick={handleDownloadNote}
+                                    className="p-1.5 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                                    title="Baixar como texto"
+                                >
+                                    <Download size={15} />
+                                </button>
                                 <button
                                     onClick={() => handleDeleteNote(selectedNote.id)}
                                     className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"

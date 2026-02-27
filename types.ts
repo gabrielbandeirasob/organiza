@@ -27,9 +27,24 @@ export interface Transaction {
   amount: number;
 }
 
+export interface AIInsight {
+  id: string;
+  title: string;
+  description: string;
+  type: 'opportunity' | 'alert' | 'info';
+}
 
+export type View = 'dashboard' | 'records' | 'settings' | 'notes' | 'fixed-costs';
 
-export type View = 'dashboard' | 'records' | 'settings' | 'notes';
+export interface FixedCost {
+  id: string;
+  baseId?: string; // Links costs across months
+  month?: string; // Format 'YYYY-MM'
+  name: string;
+  dueDate: string;
+  value: number;
+  isPaid: boolean;
+}
 
 export interface Note {
   id: string;
