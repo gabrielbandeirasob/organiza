@@ -131,9 +131,9 @@ const Notes: React.FC = () => {
             setSelectedNoteId(null);
             setNewFolderName('');
             setIsCreatingFolder(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating folder:', error);
-            alert('Erro ao criar pasta');
+            alert('Erro ao criar pasta: ' + (error.message || 'Erro desconhecido'));
         }
     };
 
@@ -144,8 +144,9 @@ const Notes: React.FC = () => {
             const updated = await noteService.updateFolder(id, name);
             setFolders(prev => prev.map(f => f.id === id ? updated : f));
             setEditingFolderId(null);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error renaming folder:', error);
+            alert('Erro ao renomear pasta: ' + (error.message || 'Erro desconhecido'));
         }
     };
 
@@ -159,8 +160,9 @@ const Notes: React.FC = () => {
                 setSelectedFolderId(null);
                 setSelectedNoteId(null);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting folder:', error);
+            alert('Erro ao excluir pasta: ' + (error.message || 'Erro desconhecido'));
         }
     };
 
@@ -180,8 +182,9 @@ const Notes: React.FC = () => {
             setSelectedNoteId(note.id);
             setNewNoteTitle('');
             setIsCreatingNote(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating note:', error);
+            alert('Erro ao criar nota: ' + (error.message || 'Erro desconhecido'));
         }
     };
 
@@ -191,8 +194,9 @@ const Notes: React.FC = () => {
             await noteService.deleteNote(id);
             setNotes(prev => prev.filter(n => n.id !== id));
             if (selectedNoteId === id) setSelectedNoteId(null);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting note:', error);
+            alert('Erro ao excluir nota: ' + (error.message || 'Erro desconhecido'));
         }
     };
 
