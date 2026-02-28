@@ -34,7 +34,51 @@ export type Database = {
                     user_id?: string
                 }
                 Relationships: []
-            }
+            },
+            fixed_costs: {
+                Row: {
+                    id: string
+                    user_id: string
+                    base_id: string | null
+                    month: string | null
+                    name: string
+                    due_date: string | null
+                    value: number
+                    is_paid: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    base_id?: string | null
+                    month?: string | null
+                    name: string
+                    due_date?: string | null
+                    value?: number
+                    is_paid?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    base_id?: string | null
+                    month?: string | null
+                    name?: string
+                    due_date?: string | null
+                    value?: number
+                    is_paid?: boolean
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "fixed_costs_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            },
             teste: {
                 Row: {
                     created_at: string
@@ -52,7 +96,7 @@ export type Database = {
                     userid?: string | null
                 }
                 Relationships: []
-            }
+            },
             transactions: {
                 Row: {
                     amount: number
@@ -89,16 +133,16 @@ export type Database = {
                 }
                 Relationships: []
             }
-        }
+        },
         Views: {
             [_ in never]: never
-        }
+        },
         Functions: {
             [_ in never]: never
-        }
+        },
         Enums: {
             [_ in never]: never
-        }
+        },
         CompositeTypes: {
             [_ in never]: never
         }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FixedCost } from '../types';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, DollarSign, Calendar, Home, Check, ChevronLeft, ChevronRight, Copy, FileEdit } from 'lucide-react';
+import { fixedCostService } from '../services/fixedCostService';
+import { Plus, Trash2, DollarSign, Calendar, Home, Check, ChevronLeft, ChevronRight, Copy, FileEdit, Loader2 } from 'lucide-react';
 
 const STORAGE_KEY_PREFIX = 'organiza_fixed_costs_';
 
@@ -39,31 +40,11 @@ const addMonthsToDateStr = (dateStr: string, monthsToAdd: number) => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-function loadData(userId: string): FixedCost[] {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY_PREFIX + userId);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            const currentMonth = getCurrentMonthStr();
-            // Migrate old data
-            return parsed.map((c: any) => ({
-                ...c,
-                baseId: c.baseId || c.id,
-                month: c.month || currentMonth
-            }));
-        }
-    } catch { /* ignore */ }
-    return [];
-}
-
-function saveData(userId: string, data: FixedCost[]) {
-    localStorage.setItem(STORAGE_KEY_PREFIX + userId, JSON.stringify(data));
-}
-
 const FixedCosts: React.FC = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [costs, setCosts] = useState<FixedCost[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Determine available months
     const availableMonths = useMemo(() => {
@@ -91,84 +72,85 @@ const FixedCosts: React.FC = () => {
 
     // Load user and data
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        const init = async () => {
+            setIsLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
             if (session?.user?.id) {
                 const uid = session.user.id;
-                console.log(`[FIXED COSTS] Current Session UID: ${uid}`);
-
-                let data = loadData(uid);
-                let migrated = false;
-
-                // Migrate from EVERY legacy key starting with organiza_fixed_costs_
-                const allKeys = Object.keys(localStorage);
-                for (const key of allKeys) {
-                    if (key && key.startsWith(STORAGE_KEY_PREFIX) && key !== STORAGE_KEY_PREFIX + uid) {
-                        try {
-                            const raw = localStorage.getItem(key);
-                            if (raw) {
-                                const legacyData = JSON.parse(raw);
-                                if (Array.isArray(legacyData) && legacyData.length > 0) {
-                                    // Merge if they don't already exist (by id)
-                                    const newCosts = legacyData.filter((lc: any) => !data.some((c: any) => c.id === lc.id));
-                                    if (newCosts.length > 0) {
-                                        data = [...data, ...newCosts];
-                                        migrated = true;
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.error(`[MIGRATION] Error migrating costs from ${key}:`, e);
-                        }
-                    }
-                }
-
-                if (migrated) {
-                    saveData(uid, data);
-                }
-
-                setCosts(data);
-
-                // If loaded data has months, select the most recent one by default
-                const loadedMonths = Array.from(new Set(data.map(c => c.month).filter(Boolean)));
-                if (loadedMonths.length > 0) {
-                    loadedMonths.sort();
-                    setSelectedMonth(loadedMonths[loadedMonths.length - 1] as string);
-                } else {
-                    setSelectedMonth(getCurrentMonthStr());
-                }
-
-                // setUserId LAST to avoid premature auto-saves
                 setUserId(uid);
-            } else {
-                console.warn('[FIXED COSTS] No session found');
-            }
-        });
-    }, []);
 
-    // Persist whenever costs change
-    useEffect(() => {
-        if (userId) saveData(userId, costs);
-    }, [costs, userId]);
+                try {
+                    let dbCosts = await fixedCostService.fetchAll();
+
+                    // Migration Logic
+                    const localKey = STORAGE_KEY_PREFIX + uid;
+                    const localRaw = localStorage.getItem(localKey);
+
+                    if (localRaw) {
+                        console.log('[MIGRATION] Local data found, migrating to Supabase...');
+                        const localData = JSON.parse(localRaw);
+                        if (Array.isArray(localData) && localData.length > 0) {
+                            // Filter data that doesn't exist in Supabase (by some heuristic or just all if db is empty)
+                            // To be safe, if DB is empty, migrate everything.
+                            if (dbCosts.length === 0) {
+                                const costsToMigrate = localData.map((c: any) => ({
+                                    ...c,
+                                    baseId: c.baseId || c.id,
+                                    month: c.month || getCurrentMonthStr()
+                                }));
+                                await fixedCostService.createMany(costsToMigrate);
+                                dbCosts = await fixedCostService.fetchAll();
+                            }
+                        }
+                        // Clear localStorage after migration
+                        localStorage.removeItem(localKey);
+
+                        // Also clear legacy keys
+                        Object.keys(localStorage).forEach(key => {
+                            if (key.startsWith(STORAGE_KEY_PREFIX)) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+                    }
+
+                    setCosts(dbCosts);
+
+                    // If loaded data has months, select the most recent one by default
+                    const loadedMonths = Array.from(new Set(dbCosts.map(c => c.month).filter(Boolean)));
+                    if (loadedMonths.length > 0) {
+                        loadedMonths.sort();
+                        setSelectedMonth(loadedMonths[loadedMonths.length - 1] as string);
+                    } else {
+                        setSelectedMonth(getCurrentMonthStr());
+                    }
+                } catch (error) {
+                    console.error('[FIXED COSTS] Error loading data:', error);
+                }
+            }
+            setIsLoading(false);
+        };
+
+        init();
+    }, []);
 
     // Derived state for the selected month
     const currentCosts = useMemo(() => {
         return costs.filter(c => c.month === selectedMonth);
     }, [costs, selectedMonth]);
 
-    const handleAddCost = (e: React.FormEvent) => {
+    const handleAddCost = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newName.trim() || !newValue) return;
 
         const baseId = generateId();
         const futureMonths = availableMonths.filter(m => m >= selectedMonth);
 
-        const newCosts: FixedCost[] = futureMonths.map(month => {
-            // Calculate how many months ahead this is from selectedMonth
+        const newCostsData: FixedCost[] = futureMonths.map(month => {
             const monthDiff = (parseInt(month.split('-')[0]) - parseInt(selectedMonth.split('-')[0])) * 12 +
                 (parseInt(month.split('-')[1]) - parseInt(selectedMonth.split('-')[1]));
 
             return {
-                id: generateId(),
+                id: '', // Will be generated by DB
                 baseId: baseId,
                 month: month,
                 name: newName.trim(),
@@ -178,10 +160,9 @@ const FixedCosts: React.FC = () => {
             };
         });
 
-        // Ensure current month is included if it's new
         if (futureMonths.length === 0) {
-            newCosts.push({
-                id: generateId(),
+            newCostsData.push({
+                id: '',
                 baseId: baseId,
                 month: selectedMonth,
                 name: newName.trim(),
@@ -191,46 +172,77 @@ const FixedCosts: React.FC = () => {
             });
         }
 
-        setCosts(prev => [...prev, ...newCosts]);
-        setNewName('');
-        setNewDueDate('');
-        setNewValue('');
+        try {
+            const created = await fixedCostService.createMany(newCostsData);
+            setCosts(prev => [...prev, ...created]);
+            setNewName('');
+            setNewDueDate('');
+            setNewValue('');
+        } catch (error) {
+            console.error('Error adding cost:', error);
+            alert('Erro ao adicionar custo');
+        }
     };
 
-    const togglePaid = (id: string) => {
-        setCosts(prev => prev.map(c =>
-            c.id === id ? { ...c, isPaid: !c.isPaid } : c
-        ));
+    const togglePaid = async (cost: FixedCost) => {
+        try {
+            const updated = await fixedCostService.update(cost.id, { isPaid: !cost.isPaid });
+            setCosts(prev => prev.map(c => c.id === cost.id ? updated : c));
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
     };
 
-    const handleEditCost = (id: string, field: keyof FixedCost, value: string | number) => {
+    const handleEditCost = async (id: string, field: keyof FixedCost, value: string | number) => {
+        // Optimistic update in state first for smooth typing if we want, 
+        // but here we wait for the "Check" or Blur to save.
+        // For now, let's keep it in state and save when editingId is set to null (Check button)
         setCosts(prev => prev.map(c =>
             c.id === id ? { ...c, [field]: value } : c
         ));
     };
 
-    const handleDelete = (id: string, baseId?: string) => {
-        if (confirm('Deseja excluir este custo apenas deste mês ou de todos os meses futuros?\n\n[OK] para Todos Futuros\n[Cancelar] Apenas deste mês')) {
-            // Delete current and future
-            setCosts(prev => prev.filter(c => {
-                if (c.baseId === baseId && c.month && c.month >= selectedMonth) return false;
-                return c.id !== id;
-            }));
-        } else {
-            // Delete just this one
-            setCosts(prev => prev.filter(c => c.id !== id));
+    const saveEdit = async (id: string) => {
+        const cost = costs.find(c => c.id === id);
+        if (!cost) return;
+        try {
+            await fixedCostService.update(id, cost);
+            setEditingId(null);
+        } catch (error) {
+            console.error('Error saving edit:', error);
+            alert('Erro ao salvar alterações');
         }
     };
 
-    const createNextMonth = () => {
+    const handleDelete = async (id: string, baseId?: string) => {
+        const isFutureDelete = confirm('Deseja excluir este custo apenas deste mês ou de todos os meses futuros?\n\n[OK] para Todos Futuros\n[Cancelar] Apenas deste mês');
+
+        try {
+            if (isFutureDelete && baseId) {
+                await fixedCostService.deleteFuture(baseId, selectedMonth);
+                setCosts(prev => prev.filter(c => {
+                    if (c.baseId === baseId && c.month && c.month >= selectedMonth) return false;
+                    return true;
+                }));
+            } else {
+                await fixedCostService.delete(id);
+                setCosts(prev => prev.filter(c => c.id !== id));
+            }
+        } catch (error) {
+            console.error('Error deleting cost:', error);
+            alert('Erro ao excluir custo');
+        }
+    };
+
+    const createNextMonth = async () => {
         const nextMonth = getNextMonthStr(selectedMonth);
         if (availableMonths.includes(nextMonth)) {
             setSelectedMonth(nextMonth);
-            return; // Already exists
+            return;
         }
 
-        const newCosts: FixedCost[] = currentCosts.map(c => ({
-            id: generateId(),
+        const newCostsData: FixedCost[] = currentCosts.map(c => ({
+            id: '',
             baseId: c.baseId || generateId(),
             month: nextMonth,
             name: c.name,
@@ -239,11 +251,25 @@ const FixedCosts: React.FC = () => {
             isPaid: false
         }));
 
-        setCosts(prev => [...prev, ...newCosts]);
-        setSelectedMonth(nextMonth);
+        try {
+            const created = await fixedCostService.createMany(newCostsData);
+            setCosts(prev => [...prev, ...created]);
+            setSelectedMonth(nextMonth);
+        } catch (error) {
+            console.error('Error creating next month:', error);
+            alert('Erro ao gerar próximo mês');
+        }
     };
 
     const totalFormatado = currentCosts.reduce((acc, curr) => acc + curr.value, 0);
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-[#0d0d0d] text-white">
+                <Loader2 className="animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
@@ -410,7 +436,7 @@ const FixedCosts: React.FC = () => {
                                         </td>
                                         <td className="p-3 text-center border-r border-zinc-800/80">
                                             <button
-                                                onClick={() => togglePaid(cost.id)}
+                                                onClick={() => togglePaid(cost)}
                                                 className={`w-full py-2.5 rounded text-xs font-bold tracking-widest transition-colors border ${cost.isPaid ? 'bg-[#34d399]/10 text-[#34d399] border-[#34d399]/20 hover:bg-[#34d399]/20' : 'bg-[#151518] text-zinc-600 border-zinc-800 hover:text-zinc-300 hover:bg-[#1a1a1e]'}`}
                                             >
                                                 {cost.isPaid ? 'PAGO' : '-'}
@@ -420,7 +446,7 @@ const FixedCosts: React.FC = () => {
                                             <div className="flex items-center justify-center gap-4">
                                                 {isEditing ? (
                                                     <button
-                                                        onClick={() => setEditingId(null)}
+                                                        onClick={() => saveEdit(cost.id)}
                                                         className="text-[#34d399] hover:text-[#34d399]/70 transition-colors"
                                                         title="Salvar"
                                                     >
