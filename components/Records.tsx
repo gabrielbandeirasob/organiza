@@ -76,7 +76,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
         </div>
         <button
           onClick={onAddTransaction}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-3 sm:py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
         >
           <Plus size={18} />
           Adicionar Registro
@@ -84,8 +84,8 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
       </header>
 
       <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl overflow-hidden backdrop-blur-sm">
-        <div className="p-4 border-b border-zinc-800 flex flex-wrap gap-4 items-center justify-between">
-          <div className="relative flex-1 min-w-[300px]">
+        <div className="p-4 border-b border-zinc-800 flex flex-col gap-4">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
             <input
               type="text"
@@ -95,31 +95,33 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
               className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all"
             />
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <select
-              value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
-            >
-              <option value="">Todas Categorias</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-zinc-950/50 border border-zinc-800 px-4 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30"
-            >
-              <option value="">Todos Tipos</option>
-              <option value={TransactionType.INCOME}>Entradas</option>
-              <option value={TransactionType.EXPENSE}>Saídas</option>
-            </select>
-            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-1.5 rounded-xl">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="grid grid-cols-2 gap-2 flex-1">
+              <select
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
+              >
+                <option value="">Categorias</option>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
+              >
+                <option value="">Tipos</option>
+                <option value={TransactionType.INCOME}>Entradas</option>
+                <option value={TransactionType.EXPENSE}>Saídas</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-xl flex-1 sm:flex-none">
               <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
               <input
                 type="date"
@@ -128,7 +130,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                   setStartDate(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
+                className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0 flex-1 sm:w-[105px]"
               />
               <span className="text-[10px] text-zinc-500 font-bold uppercase">Até</span>
               <input
@@ -138,7 +140,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                   setEndDate(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0"
+                className="bg-transparent border-none text-[11px] text-zinc-300 focus:outline-none focus:ring-0 flex-1 sm:w-[105px]"
               />
             </div>
           </div>
