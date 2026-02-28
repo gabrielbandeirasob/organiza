@@ -159,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
   }, [filteredTransactions]);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="px-3 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">Visão Geral</h2>

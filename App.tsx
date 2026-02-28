@@ -307,7 +307,7 @@ const App: React.FC = () => {
       </div>
 
       <main className="flex-1 overflow-y-auto mt-16 md:mt-0">
-        <div className="p-4 md:p-8">
+        <div className="px-2 py-4 md:p-8">
           {currentView === 'dashboard' && (
             <Dashboard
               transactions={transactions}

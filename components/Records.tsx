@@ -68,7 +68,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+    <div className="px-3 md:p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">Meus Registros</h2>
