@@ -97,6 +97,77 @@ export type Database = {
                 }
                 Relationships: []
             },
+            note_folders: {
+                Row: {
+                    id: string
+                    user_id: string
+                    name: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    name: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    name?: string
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "note_folders_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            },
+            notes: {
+                Row: {
+                    id: string
+                    user_id: string
+                    folder_id: string | null
+                    title: string
+                    content: string | null
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    folder_id?: string | null
+                    title: string
+                    content?: string | null
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    folder_id?: string | null
+                    title?: string
+                    content?: string | null
+                    updated_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "notes_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "notes_folder_id_fkey"
+                        columns: ["folder_id"]
+                        isOneToOne: false
+                        referencedRelation: "note_folders"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            },
             transactions: {
                 Row: {
                     amount: number

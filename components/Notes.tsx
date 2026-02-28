@@ -1,24 +1,11 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Download } from 'lucide-react';
+import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { NoteFolder, Note } from '../types';
 import { supabase } from '../lib/supabase';
-
-const generateId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+import { noteService } from '../services/noteService';
 
 const STORAGE_KEY_PREFIX = 'organiza_notes_';
-
-function loadData(userId: string): { folders: NoteFolder[]; notes: Note[] } {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY_PREFIX + userId);
-        if (raw) return JSON.parse(raw);
-    } catch { /* ignore */ }
-    return { folders: [], notes: [] };
-}
-
-function saveData(userId: string, data: { folders: NoteFolder[]; notes: Note[] }) {
-    localStorage.setItem(STORAGE_KEY_PREFIX + userId, JSON.stringify(data));
-}
 
 const Notes: React.FC = () => {
     const [userId, setUserId] = useState<string | null>(null);
@@ -26,6 +13,7 @@ const Notes: React.FC = () => {
     const [notes, setNotes] = useState<Note[]>([]);
     const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
     const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Folder editing state
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
@@ -46,42 +34,66 @@ const Notes: React.FC = () => {
 
     // Load user and data
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        const init = async () => {
+            setIsLoading(true);
+            const { data: { session } } = await supabase.auth.getSession();
             if (session?.user?.id) {
                 const uid = session.user.id;
-                let data = loadData(uid);
-
-                setFolders(data.folders);
-                setNotes(data.notes);
-                // setUserId triggers the persistence useEffect, so we do it last
                 setUserId(uid);
-            } else {
-                console.warn('[NOTES] No session found');
+
+                try {
+                    let { folders: dbFolders, notes: dbNotes } = await noteService.fetchAll();
+
+                    // Migration Logic
+                    const localKey = STORAGE_KEY_PREFIX + uid;
+                    const localRaw = localStorage.getItem(localKey);
+
+                    if (localRaw && dbFolders.length === 0 && dbNotes.length === 0) {
+                        console.log('[MIGRATION] Local notes found, migrating to Supabase...');
+                        const localData = JSON.parse(localRaw);
+                        const localFolders = localData.folders || [];
+                        const localNotes = localData.notes || [];
+
+                        if (localFolders.length > 0) {
+                            // Create folders and map IDs
+                            const idMapping: Record<string, string> = {};
+                            for (const f of localFolders) {
+                                const created = await noteService.createFolder(f.name);
+                                idMapping[f.id] = created.id;
+                            }
+
+                            // Create notes with mapped folder IDs
+                            if (localNotes.length > 0) {
+                                const notesToMigrate = localNotes.map((n: any) => ({
+                                    ...n,
+                                    folderId: idMapping[n.folderId] || null
+                                }));
+                                await noteService.createManyNotes(notesToMigrate);
+                            }
+
+                            // Reload from DB
+                            const reloaded = await noteService.fetchAll();
+                            dbFolders = reloaded.folders;
+                            dbNotes = reloaded.notes;
+                        }
+
+                        // Clear localStorage
+                        localStorage.removeItem(localKey);
+                    }
+
+                    setFolders(dbFolders);
+                    setNotes(dbNotes);
+                } catch (error) {
+                    console.error('[NOTES] Error loading data:', error);
+                }
             }
-        });
+            setIsLoading(false);
+        };
+
+        init();
     }, []);
 
-    // Persist whenever folders or notes change
-    useEffect(() => {
-        if (userId) saveData(userId, { folders, notes });
-    }, [folders, notes, userId]);
-
-    // Auto-focus new folder input
-    useEffect(() => {
-        if (isCreatingFolder) newFolderInputRef.current?.focus();
-    }, [isCreatingFolder]);
-
-    // Auto-focus new note input
-    useEffect(() => {
-        if (isCreatingNote) newNoteInputRef.current?.focus();
-    }, [isCreatingNote]);
-
-    // Auto-focus folder rename input
-    useEffect(() => {
-        if (editingFolderId) folderEditInputRef.current?.focus();
-    }, [editingFolderId]);
-
-    // Sync editor fields when selected note changes
+    // Selection management
     useEffect(() => {
         const note = notes.find(n => n.id === selectedNoteId);
         if (note) {
@@ -91,50 +103,64 @@ const Notes: React.FC = () => {
             setEditingNoteTitle('');
             setEditingNoteContent('');
         }
-    }, [selectedNoteId]);
+    }, [selectedNoteId, notes]);
 
     // Debounced auto-save for note content
     const scheduleNoteSave = useCallback((title: string, content: string) => {
         if (!selectedNoteId) return;
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => {
-            setNotes(prev =>
-                prev.map(n =>
-                    n.id === selectedNoteId
-                        ? { ...n, title, content, updatedAt: new Date().toISOString() }
-                        : n
-                )
-            );
-        }, 500);
+        saveTimerRef.current = setTimeout(async () => {
+            try {
+                const updated = await noteService.updateNote(selectedNoteId, { title, content });
+                setNotes(prev => prev.map(n => n.id === selectedNoteId ? updated : n));
+            } catch (error) {
+                console.error('Error auto-saving note:', error);
+            }
+        }, 1000);
     }, [selectedNoteId]);
 
     // ── Folder actions ──────────────────────────────────────────────
 
-    const handleCreateFolder = () => {
+    const handleCreateFolder = async () => {
         const name = newFolderName.trim();
         if (!name) { setIsCreatingFolder(false); return; }
-        const folder: NoteFolder = { id: generateId(), name, createdAt: new Date().toISOString() };
-        setFolders(prev => [...prev, folder]);
-        setSelectedFolderId(folder.id);
-        setSelectedNoteId(null);
-        setNewFolderName('');
-        setIsCreatingFolder(false);
+        try {
+            const folder = await noteService.createFolder(name);
+            setFolders(prev => [...prev, folder]);
+            setSelectedFolderId(folder.id);
+            setSelectedNoteId(null);
+            setNewFolderName('');
+            setIsCreatingFolder(false);
+        } catch (error) {
+            console.error('Error creating folder:', error);
+            alert('Erro ao criar pasta');
+        }
     };
 
-    const handleRenameFolder = (id: string) => {
+    const handleRenameFolder = async (id: string) => {
         const name = editingFolderName.trim();
         if (!name) { setEditingFolderId(null); return; }
-        setFolders(prev => prev.map(f => f.id === id ? { ...f, name } : f));
-        setEditingFolderId(null);
+        try {
+            const updated = await noteService.updateFolder(id, name);
+            setFolders(prev => prev.map(f => f.id === id ? updated : f));
+            setEditingFolderId(null);
+        } catch (error) {
+            console.error('Error renaming folder:', error);
+        }
     };
 
-    const handleDeleteFolder = (id: string) => {
+    const handleDeleteFolder = async (id: string) => {
         if (!confirm('Excluir esta pasta e todas as suas notas?')) return;
-        setFolders(prev => prev.filter(f => f.id !== id));
-        setNotes(prev => prev.filter(n => n.folderId !== id));
-        if (selectedFolderId === id) {
-            setSelectedFolderId(null);
-            setSelectedNoteId(null);
+        try {
+            await noteService.deleteFolder(id);
+            setFolders(prev => prev.filter(f => f.id !== id));
+            setNotes(prev => prev.filter(n => n.folderId !== id));
+            if (selectedFolderId === id) {
+                setSelectedFolderId(null);
+                setSelectedNoteId(null);
+            }
+        } catch (error) {
+            console.error('Error deleting folder:', error);
         }
     };
 
@@ -145,26 +171,29 @@ const Notes: React.FC = () => {
 
     // ── Note actions ────────────────────────────────────────────────
 
-    const handleCreateNote = () => {
+    const handleCreateNote = async () => {
         if (!selectedFolderId) return;
         const title = newNoteTitle.trim() || 'Nova Nota';
-        const note: Note = {
-            id: generateId(),
-            folderId: selectedFolderId,
-            title,
-            content: '',
-            updatedAt: new Date().toISOString(),
-        };
-        setNotes(prev => [...prev, note]);
-        setSelectedNoteId(note.id);
-        setNewNoteTitle('');
-        setIsCreatingNote(false);
+        try {
+            const note = await noteService.createNote(selectedFolderId, title);
+            setNotes(prev => [note, ...prev]);
+            setSelectedNoteId(note.id);
+            setNewNoteTitle('');
+            setIsCreatingNote(false);
+        } catch (error) {
+            console.error('Error creating note:', error);
+        }
     };
 
-    const handleDeleteNote = (id: string) => {
+    const handleDeleteNote = async (id: string) => {
         if (!confirm('Excluir esta nota?')) return;
-        setNotes(prev => prev.filter(n => n.id !== id));
-        if (selectedNoteId === id) setSelectedNoteId(null);
+        try {
+            await noteService.deleteNote(id);
+            setNotes(prev => prev.filter(n => n.id !== id));
+            if (selectedNoteId === id) setSelectedNoteId(null);
+        } catch (error) {
+            console.error('Error deleting note:', error);
+        }
     };
 
     const handleDownloadNote = () => {
@@ -187,9 +216,18 @@ const Notes: React.FC = () => {
     const selectedFolder = folders.find(f => f.id === selectedFolderId) ?? null;
 
     const formatDate = (iso: string) => {
+        if (!iso) return '';
         const d = new Date(iso);
         return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-[#0d0d0d] text-white">
+                <Loader2 className="animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-full gap-0 min-h-[calc(100vh-4rem)]">
@@ -219,6 +257,7 @@ const Notes: React.FC = () => {
                                     if (e.key === 'Enter') handleCreateFolder();
                                     if (e.key === 'Escape') setIsCreatingFolder(false);
                                 }}
+                                autoFocus
                                 placeholder="Nome da pasta..."
                                 className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/50 placeholder:text-zinc-600"
                             />
@@ -246,6 +285,7 @@ const Notes: React.FC = () => {
                                             if (e.key === 'Enter') handleRenameFolder(folder.id);
                                             if (e.key === 'Escape') setEditingFolderId(null);
                                         }}
+                                        autoFocus
                                         className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/50"
                                     />
                                     <button onClick={() => handleRenameFolder(folder.id)} className="text-emerald-400 hover:text-emerald-300 p-0.5"><Check size={13} /></button>
@@ -319,6 +359,7 @@ const Notes: React.FC = () => {
                                             if (e.key === 'Enter') handleCreateNote();
                                             if (e.key === 'Escape') setIsCreatingNote(false);
                                         }}
+                                        autoFocus
                                         placeholder="Título da nota..."
                                         className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500/50 placeholder:text-zinc-600"
                                     />
