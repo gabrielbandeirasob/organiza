@@ -176,6 +176,7 @@ const Notes: React.FC = () => {
     const handleCreateNote = async () => {
         if (!selectedFolderId) return;
         const title = newNoteTitle.trim() || 'Nova Nota';
+        console.log('[NOTES] Creating note in folder:', selectedFolderId);
         try {
             const note = await noteService.createNote(selectedFolderId, title);
             setNotes(prev => [note, ...prev]);
@@ -184,7 +185,7 @@ const Notes: React.FC = () => {
             setIsCreatingNote(false);
         } catch (error: any) {
             console.error('Error creating note:', error);
-            alert('Erro ao criar nota: ' + (error.message || 'Erro desconhecido'));
+            alert(`Erro ao criar nota!\n\nID da Pasta: ${selectedFolderId}\nErro: ${error.message || 'Erro desconhecido'}\nCódigo: ${error.code || 'sem código'}`);
         }
     };
 
