@@ -43,13 +43,18 @@ export const noteService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
+        console.log('[noteService] Creating folder:', { name, userId: user.id });
         const { data, error } = await supabase
             .from('note_folders')
             .insert({ user_id: user.id, name })
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[noteService] Folder creation error:', error);
+            throw error;
+        }
+        console.log('[noteService] Folder created:', data);
         return mapFolderRowToModel(data);
     },
 
@@ -86,13 +91,17 @@ export const noteService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
+        console.log('[noteService] Creating note:', { folderId, title, userId: user.id });
         const { data, error } = await supabase
             .from('notes')
             .insert({ user_id: user.id, folder_id: folderId, title })
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[noteService] Note creation error:', error);
+            throw error;
+        }
         return mapNoteRowToModel(data);
     },
 
