@@ -274,27 +274,27 @@ const FixedCosts: React.FC = () => {
     return (
         <div className="p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
             <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold text-white mb-1">Custos Fixos</h2>
-                    <p className="text-zinc-500 text-sm">Controle suas contas mensais e verifique o que já foi pago.</p>
+                <div className="mb-4">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">Custos Fixos</h2>
+                    <p className="text-zinc-500 text-xs sm:text-sm">Controle suas contas mensais e verifique o que já foi pago.</p>
                 </div>
 
                 {/* Month Selector */}
-                <div className="flex items-center gap-2 bg-[#0a0b14] p-1.5 rounded-xl border border-zinc-800">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-[#0a0b14] p-1.5 rounded-xl border border-zinc-800 w-full sm:w-auto">
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="bg-transparent text-white font-bold py-2 px-4 focus:outline-none cursor-pointer appearance-none text-center min-w-[140px]"
+                        className="bg-zinc-900 sm:bg-transparent text-white font-bold py-2 px-4 focus:outline-none cursor-pointer appearance-none text-center min-w-[140px] rounded-lg"
                     >
                         {availableMonths.map(m => (
                             <option key={m} value={m} className="bg-zinc-900">{formatMonthStr(m)}</option>
                         ))}
                     </select>
-                    <div className="w-[1px] h-6 bg-zinc-800 mx-1"></div>
+                    <div className="hidden sm:block w-[1px] h-6 bg-zinc-800 mx-1"></div>
                     <button
                         onClick={createNextMonth}
                         title="Criar próximo mês copiando as contas"
-                        className="flex items-center gap-2 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                        className="flex items-center justify-center gap-2 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 sm:py-2 rounded-lg transition-colors text-sm font-medium"
                     >
                         <Copy size={14} />
                         Gerar Próximo Mês
@@ -340,7 +340,7 @@ const FixedCosts: React.FC = () => {
                     </div>
                     <button
                         type="submit"
-                        className="bg-emerald-600 hover:bg-emerald-500 text-black font-bold h-[46px] px-6 rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] flex items-center gap-2"
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold h-[46px] px-6 rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                         <Plus size={18} />
                         Adicionar

@@ -12,7 +12,7 @@ import { transactionService } from './services/transactionService';
 import { categoryService } from './services/categoryService';
 import { generateFinancialInsights } from './services/geminiService';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { X, Sliders, Plus, Trash2, Loader2, Menu, AlertTriangle } from 'lucide-react';
+import { X, Sliders, Plus, Trash2, Loader2, Menu, AlertTriangle, LayoutDashboard } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 
 const App: React.FC = () => {
@@ -288,15 +288,25 @@ const App: React.FC = () => {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileMenuOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-40 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white hover:bg-zinc-800 transition-colors"
-      >
-        <Menu size={24} />
-      </button>
+      {/* Mobile Header Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0d0d0d] border-b border-zinc-800 z-40 flex items-center px-4">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white hover:bg-zinc-800 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+        <div className="flex-1 flex justify-center pr-10">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-black font-bold">
+              <LayoutDashboard size={16} />
+            </div>
+            <span className="text-white font-bold tracking-tight text-sm">OrganizaFin</span>
+          </div>
+        </div>
+      </div>
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto mt-16 md:mt-0">
         <div className="p-4 md:p-8">
           {currentView === 'dashboard' && (
             <Dashboard

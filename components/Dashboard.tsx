@@ -168,30 +168,30 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
         <div className="flex gap-3">
 
           {/* Custom Date Filters */}
-          <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-6">
-            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-3 py-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 md:mt-6 w-full sm:w-auto">
+            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-3 py-2 flex-1 sm:flex-none">
               <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
+                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0 flex-1 sm:w-[110px]"
               />
-              <span className="text-[10px] text-zinc-500 font-bold uppercase ml-2">Até</span>
+              <span className="text-[10px] text-zinc-500 font-bold uppercase ml-1">Até</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent border-none text-sm text-zinc-300 focus:outline-none focus:ring-0 w-[120px]"
+                className="bg-transparent border-none text-xs text-zinc-300 focus:outline-none focus:ring-0 flex-1 sm:w-[110px]"
               />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
+                className="w-full appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
               >
                 <option value="all">Todas categorias</option>
                 {categories.map(cat => (

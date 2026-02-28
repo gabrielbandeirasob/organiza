@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, Download, Loader2 } from 'lucide-react';
+import { Plus, Folder, FolderOpen, Trash2, Pencil, Check, X, FileText, StickyNote, ChevronRight, ChevronLeft, Download, Loader2 } from 'lucide-react';
 import { NoteFolder, Note } from '../types';
 import { supabase } from '../lib/supabase';
 import { noteService } from '../services/noteService';
@@ -26,6 +26,7 @@ const Notes: React.FC = () => {
     const [editingNoteContent, setEditingNoteContent] = useState('');
     const [isCreatingNote, setIsCreatingNote] = useState(false);
     const [newNoteTitle, setNewNoteTitle] = useState('');
+    const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
 
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const newFolderInputRef = useRef<HTMLInputElement>(null);
@@ -235,10 +236,13 @@ const Notes: React.FC = () => {
     }
 
     return (
-        <div className="flex h-full gap-0 min-h-[calc(100vh-4rem)]">
+        <div className="flex h-full gap-0 min-h-[calc(100vh-4rem)] relative overflow-hidden">
 
             {/* ── Left panel: Folders ── */}
-            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
+            <div className={`
+                w-full sm:w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-0 sm:mr-4
+                ${mobileView === 'folders' ? 'flex' : 'hidden sm:flex'}
+            `}>
                 <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pastas</span>
                     <button
@@ -298,7 +302,11 @@ const Notes: React.FC = () => {
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => { setSelectedFolderId(folder.id); setSelectedNoteId(null); }}
+                                    onClick={() => {
+                                        setSelectedFolderId(folder.id);
+                                        setSelectedNoteId(null);
+                                        setMobileView('notes');
+                                    }}
                                     className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm transition-colors text-left group ${selectedFolderId === folder.id
                                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                         : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
@@ -338,9 +346,22 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Middle panel: Notes list ── */}
-            <div className="w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-4">
+            <div className={`
+                w-full sm:w-56 flex-shrink-0 border-r border-zinc-800 flex flex-col bg-[#0d0d0d] rounded-xl mr-0 sm:mr-4
+                ${mobileView === 'notes' ? 'flex' : 'hidden sm:flex'}
+            `}>
                 {selectedFolder ? (
                     <>
+                        {/* Mobile Back Button */}
+                        <div className="sm:hidden flex items-center px-4 py-2 border-b border-zinc-800">
+                            <button
+                                onClick={() => setMobileView('folders')}
+                                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-emerald-400 transition-colors"
+                            >
+                                <ChevronLeft size={14} />
+                                Voltar para Pastas
+                            </button>
+                        </div>
                         <div className="flex items-center justify-between px-4 py-4 border-b border-zinc-800">
                             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{selectedFolder.name}</span>
                             <button
@@ -389,7 +410,10 @@ const Notes: React.FC = () => {
                             {folderNotes.map(note => (
                                 <div key={note.id} className="group relative">
                                     <button
-                                        onClick={() => setSelectedNoteId(note.id)}
+                                        onClick={() => {
+                                            setSelectedNoteId(note.id);
+                                            setMobileView('editor');
+                                        }}
                                         className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${selectedNoteId === note.id
                                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                             : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
@@ -425,9 +449,23 @@ const Notes: React.FC = () => {
             </div>
 
             {/* ── Right panel: Note editor ── */}
-            <div className="flex-1 flex flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden">
+            <div className={`
+                flex-1 flex flex-col bg-[#0d0d0d] rounded-xl border border-zinc-800 overflow-hidden
+                ${mobileView === 'editor' ? 'flex' : 'hidden sm:flex'}
+            `}>
                 {selectedNote ? (
                     <>
+                        {/* Mobile Back Button */}
+                        <div className="sm:hidden flex items-center px-4 py-2 border-b border-zinc-800 bg-zinc-900/30">
+                            <button
+                                onClick={() => setMobileView('notes')}
+                                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-emerald-400 transition-colors"
+                            >
+                                <ChevronLeft size={14} />
+                                Lista de Notas
+                            </button>
+                        </div>
+
                         {/* Editor header */}
                         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#121420]/40">
                             <input

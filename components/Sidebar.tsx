@@ -67,13 +67,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, onAddTra
           <X size={24} />
         </button>
 
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-black font-bold text-xl">
-            <LayoutDashboard size={20} />
+        <div className="p-6 flex flex-col items-center text-center gap-2 border-b border-zinc-800/50">
+          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-black font-bold shadow-lg shadow-emerald-500/20">
+            <LayoutDashboard size={24} />
           </div>
           <div>
-            <h1 className="text-white font-bold tracking-tight">OrganizaFin</h1>
-            <p className="text-zinc-500 text-[10px] uppercase font-semibold">Premium Plan</p>
+            <h1 className="text-white font-bold tracking-tight text-lg">OrganizaFin</h1>
+            <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Premium Plan</p>
           </div>
         </div>
 
