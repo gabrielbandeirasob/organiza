@@ -282,7 +282,7 @@ const Notes: React.FC = () => {
                     </div>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+                <nav className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1 custom-scrollbar">
                     {isCreatingFolder && (
                         <div className="flex items-center gap-1 px-2 py-1.5 bg-emerald-500/5 rounded-lg border border-emerald-500/20 mb-2 animate-in slide-in-from-top-2 duration-200">
                             <input
@@ -401,7 +401,7 @@ const Notes: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-2 custom-scrollbar">
                             {isCreatingNote && (
                                 <div className="p-3 bg-emerald-500/5 rounded-lg border border-emerald-500/20 animate-in slide-in-from-top-2 duration-200">
                                     <input
@@ -542,7 +542,7 @@ const Notes: React.FC = () => {
                                     scheduleNoteSave(editingNoteTitle, e.target.value);
                                 }}
                                 placeholder="O que você está pensando?..."
-                                className="w-full h-full bg-transparent text-sm text-zinc-300 px-6 py-6 focus:outline-none resize-none leading-[1.8] placeholder:text-zinc-800 custom-scrollbar"
+                                className="w-full h-full bg-transparent text-sm text-zinc-300 px-6 py-6 focus:outline-none resize-none leading-[1.8] placeholder:text-zinc-800 custom-scrollbar overflow-x-hidden"
                             />
                             {/* Visual garnish: line numbers/indicator */}
                             <div className="absolute left-0 top-6 bottom-6 w-1 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent"></div>

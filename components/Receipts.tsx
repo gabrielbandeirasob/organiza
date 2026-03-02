@@ -235,7 +235,7 @@ const Receipts: React.FC = () => {
                     </div>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto py-3 space-y-1 px-3 custom-scrollbar">
+                <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 space-y-1 px-3 custom-scrollbar">
                     <button
                         onClick={() => { setSelectedFolderId(null); setMobileView('files'); }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group text-left ${selectedFolderId === null
@@ -386,7 +386,7 @@ const Receipts: React.FC = () => {
                     )}
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-8 custom-scrollbar pb-32">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 sm:p-6 space-y-8 custom-scrollbar pb-32">
 
                     {/* Section: Folders */}
                     <div>
@@ -597,7 +597,7 @@ const Receipts: React.FC = () => {
                                                     <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Mover para:</span>
                                                     <button onClick={() => setMovingReceiptId(null)} className="p-1 text-zinc-500 hover:text-white transition-colors"><X size={16} /></button>
                                                 </div>
-                                                <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+                                                <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-1.5 custom-scrollbar pr-1">
                                                     <button
                                                         onClick={() => handleMoveReceipt(receipt.id, null)}
                                                         className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[10px] font-bold text-zinc-400 hover:bg-emerald-500/10 hover:text-emerald-400 rounded-lg transition-all border border-transparent hover:border-emerald-500/20"
