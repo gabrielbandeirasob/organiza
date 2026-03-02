@@ -272,7 +272,7 @@ const FixedCosts: React.FC = () => {
     }
 
     return (
-        <div className="px-3 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
+        <div className="px-3 md:p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500">
             <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="mb-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">Custos Fixos</h2>
@@ -303,7 +303,7 @@ const FixedCosts: React.FC = () => {
             </header>
 
             {/* Add New Cost Form */}
-            <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl mb-8">
+            <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-xl mb-8">
                 <h3 className="text-lg font-bold text-white mb-4">Adicionar Conta em {formatMonthStr(selectedMonth)}</h3>
                 <form onSubmit={handleAddCost} className="flex flex-wrap gap-4 items-end">
                     <div className="flex-1 min-w-[200px]">
@@ -313,7 +313,7 @@ const FixedCosts: React.FC = () => {
                             value={newName}
                             onChange={e => setNewName(e.target.value)}
                             placeholder="Ex: Água, Condomínio..."
-                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
+                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
                             required
                         />
                     </div>
@@ -323,7 +323,7 @@ const FixedCosts: React.FC = () => {
                             type="date"
                             value={newDueDate}
                             onChange={e => setNewDueDate(e.target.value)}
-                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
+                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
                         />
                     </div>
                     <div className="flex-1 min-w-[150px]">
@@ -334,13 +334,13 @@ const FixedCosts: React.FC = () => {
                             value={newValue}
                             onChange={e => setNewValue(e.target.value)}
                             placeholder="0,00"
-                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
+                            className="w-full bg-[#0a0b14] border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-700"
                             required
                         />
                     </div>
                     <button
                         type="submit"
-                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold h-[46px] px-6 rounded-xl transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold h-[42px] px-6 rounded-lg transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
                     >
                         <Plus size={18} />
                         Adicionar
@@ -355,27 +355,27 @@ const FixedCosts: React.FC = () => {
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-[#151518] text-xs font-bold tracking-widest uppercase border-b border-zinc-800/80">
-                                <th className="px-5 py-4 border-r border-zinc-800/80 w-[35%]">
+                                <th className="px-5 py-3 border-r border-zinc-800/80 w-[35%]">
                                     <div className="flex items-center gap-2 text-zinc-400">
-                                        <Home size={14} className="text-[#e87a3f]" />
+                                        <Home size={13} className="text-[#e87a3f]" />
                                         <span>Conta</span>
                                     </div>
                                 </th>
-                                <th className="px-5 py-4 border-r border-zinc-800/80 w-[20%] text-center">
+                                <th className="px-5 py-3 border-r border-zinc-800/80 w-[20%] text-center">
                                     <div className="flex items-center justify-center gap-2 text-zinc-400">
-                                        <Calendar size={14} className="text-[#db4c4c]" />
+                                        <Calendar size={13} className="text-[#db4c4c]" />
                                         <span>Vencimento</span>
                                     </div>
                                 </th>
-                                <th className="px-5 py-4 border-r border-zinc-800/80 w-[25%]">
+                                <th className="px-5 py-3 border-r border-zinc-800/80 w-[25%]">
                                     <div className="flex items-center justify-center gap-2 text-zinc-400">
-                                        <DollarSign size={14} className="text-[#34d399]" />
+                                        <DollarSign size={13} className="text-[#34d399]" />
                                         <span>Valor</span>
                                     </div>
                                 </th>
-                                <th className="px-5 py-4 text-center border-r border-zinc-800/80 w-[15%]">
+                                <th className="px-5 py-3 text-center border-r border-zinc-800/80 w-[15%]">
                                     <div className="flex items-center justify-center gap-2 text-zinc-400">
-                                        <Check size={14} />
+                                        <Check size={13} />
                                         <span>Pago?</span>
                                     </div>
                                 </th>
@@ -394,10 +394,10 @@ const FixedCosts: React.FC = () => {
                                                     value={cost.name}
                                                     onChange={(e) => handleEditCost(cost.id, 'name', e.target.value)}
                                                     autoFocus
-                                                    className="w-full bg-[#1a1a1e] px-5 py-4 text-white focus:outline-none uppercase font-semibold text-sm transition-colors border-l-2 border-[#34d399]"
+                                                    className="w-full bg-[#1a1a1e] px-5 py-3 text-white focus:outline-none uppercase font-semibold text-sm transition-colors border-l-2 border-[#34d399]"
                                                 />
                                             ) : (
-                                                <div className="w-full px-5 py-4 text-white uppercase font-semibold text-sm cursor-pointer" onDoubleClick={() => setEditingId(cost.id)}>
+                                                <div className="w-full px-5 py-3 text-white uppercase font-semibold text-sm cursor-pointer" onDoubleClick={() => setEditingId(cost.id)}>
                                                     {cost.name}
                                                 </div>
                                             )}
@@ -408,10 +408,10 @@ const FixedCosts: React.FC = () => {
                                                     type="date"
                                                     value={cost.dueDate}
                                                     onChange={(e) => handleEditCost(cost.id, 'dueDate', e.target.value)}
-                                                    className="w-full bg-[#1a1a1e] text-center px-5 py-4 text-emerald-100/90 focus:outline-none text-sm transition-colors [color-scheme:dark]"
+                                                    className="w-full bg-[#1a1a1e] text-center px-5 py-3 text-emerald-100/90 focus:outline-none text-sm transition-colors [color-scheme:dark]"
                                                 />
                                             ) : (
-                                                <div className="w-full text-center px-5 py-4 text-emerald-100/90 text-sm cursor-pointer" onDoubleClick={() => setEditingId(cost.id)}>
+                                                <div className="w-full text-center px-5 py-3 text-emerald-100/90 text-sm cursor-pointer" onDoubleClick={() => setEditingId(cost.id)}>
                                                     {cost.dueDate ? new Date(cost.dueDate + 'T00:00:00').toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
                                                 </div>
                                             )}
@@ -425,10 +425,10 @@ const FixedCosts: React.FC = () => {
                                                         step="0.01"
                                                         value={cost.value || ''}
                                                         onChange={(e) => handleEditCost(cost.id, 'value', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-transparent py-4 text-right text-white font-semibold focus:outline-none text-sm"
+                                                        className="w-full bg-transparent py-3 text-right text-white font-semibold focus:outline-none text-sm"
                                                     />
                                                 ) : (
-                                                    <div className="w-full py-4 text-right text-white font-semibold text-sm">
+                                                    <div className="w-full py-3 text-right text-white font-semibold text-sm">
                                                         {cost.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </div>
                                                 )}
@@ -483,10 +483,10 @@ const FixedCosts: React.FC = () => {
                         </tbody>
                         <tfoot>
                             <tr className="bg-[#151518] text-white text-sm border-t border-zinc-800/80">
-                                <td colSpan={2} className="px-5 py-4 border-r border-zinc-800/80 text-right font-bold text-zinc-400 tracking-wider">
+                                <td colSpan={2} className="px-5 py-3 border-r border-zinc-800/80 text-right font-bold text-zinc-400 tracking-wider">
                                     VALOR TOTAL =
                                 </td>
-                                <td className="px-5 py-4 border-r border-zinc-800/80 bg-transparent">
+                                <td className="px-5 py-3 border-r border-zinc-800/80 bg-transparent">
                                     <div className="flex items-center justify-between text-[#34d399] font-bold text-base">
                                         <span>R$</span>
                                         <span>{totalFormatado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>

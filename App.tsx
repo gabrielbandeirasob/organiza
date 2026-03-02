@@ -6,6 +6,7 @@ import Records from './components/Records';
 import Settings from './components/Settings';
 import { Auth } from './components/Auth';
 import Notes from './components/Notes';
+import Receipts from './components/Receipts';
 import FixedCosts from './components/FixedCosts';
 import { Transaction, TransactionType, Category, View, AIInsight, DEFAULT_CATEGORIES } from './types';
 import { transactionService } from './services/transactionService';
@@ -333,6 +334,9 @@ const App: React.FC = () => {
           )}
           {currentView === 'fixed-costs' && (
             <FixedCosts />
+          )}
+          {currentView === 'receipts' && (
+            <Receipts />
           )}
         </div>
       </main>

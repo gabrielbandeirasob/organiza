@@ -34,7 +34,7 @@ export interface AIInsight {
   type: 'opportunity' | 'alert' | 'info';
 }
 
-export type View = 'dashboard' | 'records' | 'settings' | 'notes' | 'fixed-costs';
+export type View = 'dashboard' | 'records' | 'settings' | 'notes' | 'fixed-costs' | 'receipts';
 
 export interface FixedCost {
   id: string;
@@ -57,5 +57,20 @@ export interface Note {
 export interface NoteFolder {
   id: string;
   name: string;
+  createdAt: string;
+}
+export interface ReceiptFolder {
+  id: string;
+  parentId?: string | null;
+  name: string;
+  createdAt: string;
+}
+
+export interface Receipt {
+  id: string;
+  folderId: string | null;
+  name: string;
+  fileUrl: string;
+  filePath: string;
   createdAt: string;
 }

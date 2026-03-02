@@ -168,6 +168,90 @@ export type Database = {
                     }
                 ]
             },
+            receipt_folders: {
+                Row: {
+                    id: string
+                    user_id: string
+                    parent_id: string | null
+                    name: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    parent_id?: string | null
+                    name: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    parent_id?: string | null
+                    name?: string
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "receipt_folders_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "receipt_folders_parent_id_fkey"
+                        columns: ["parent_id"]
+                        isOneToOne: false
+                        referencedRelation: "receipt_folders"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            },
+            receipts: {
+                Row: {
+                    id: string
+                    user_id: string
+                    folder_id: string | null
+                    name: string
+                    file_url: string
+                    file_path: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    folder_id?: string | null
+                    name: string
+                    file_url: string
+                    file_path: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    folder_id?: string | null
+                    name?: string
+                    file_url?: string
+                    file_path?: string
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "receipts_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "users"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "receipts_folder_id_fkey"
+                        columns: ["folder_id"]
+                        isOneToOne: false
+                        referencedRelation: "receipt_folders"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            },
             transactions: {
                 Row: {
                     amount: number

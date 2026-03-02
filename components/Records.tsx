@@ -68,7 +68,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="px-3 md:p-8 max-w-7xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+    <div className="px-3 md:p-5 max-w-[1400px] mx-auto animate-in slide-in-from-bottom-4 duration-500">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">Meus Registros</h2>
@@ -76,14 +76,14 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
         </div>
         <button
           onClick={onAddTransaction}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-3 sm:py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-6 py-3 sm:py-2 rounded-lg transition-all shadow-lg shadow-emerald-500/10"
         >
           <Plus size={18} />
           Adicionar Registro
         </button>
       </header>
 
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl overflow-hidden backdrop-blur-sm">
+      <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden backdrop-blur-sm">
         <div className="p-4 border-b border-zinc-800 flex flex-col gap-4">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
@@ -92,7 +92,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
               placeholder="Pesquisar transações..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all"
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -103,7 +103,7 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                   setCategoryFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
+                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
               >
                 <option value="">Categorias</option>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -114,14 +114,14 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                   setTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
+                className="w-full bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white transition-colors focus:outline-none focus:border-emerald-500/30 appearance-none cursor-pointer"
               >
                 <option value="">Tipos</option>
                 <option value={TransactionType.INCOME}>Entradas</option>
                 <option value={TransactionType.EXPENSE}>Saídas</option>
               </select>
             </div>
-            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-2 rounded-xl flex-1 sm:flex-none">
+            <div className="flex items-center gap-2 bg-zinc-950/50 border border-zinc-800 px-3 py-1.5 rounded-lg flex-1 sm:flex-none">
               <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
               <input
                 type="date"
@@ -154,23 +154,23 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                 <th className="px-6 py-4">Descrição</th>
                 <th className="px-6 py-4">Categoria</th>
                 <th className="px-6 py-4">Tipo</th>
-                <th className="px-6 py-4 text-right">Valor</th>
-                <th className="px-6 py-4 text-center">Ações</th>
+                <th className="px-6 py-3 text-right">Valor</th>
+                <th className="px-6 py-3 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
               {paginatedTransactions.map((t) => (
                 <tr key={t.id} className="hover:bg-zinc-800/20 transition-colors group">
-                  <td className="px-6 py-5 text-sm text-zinc-300">
+                  <td className="px-6 py-3 text-sm text-zinc-300">
                     {parseDateLocal(t.date).toLocaleDateString('pt-BR')}
                   </td>
-                  <td className="px-6 py-5 text-sm text-white font-semibold">{t.description}</td>
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-3 text-sm text-white font-semibold">{t.description}</td>
+                  <td className="px-6 py-3">
                     <span className="px-2.5 py-1 bg-zinc-800 text-zinc-300 rounded-lg text-[10px] font-bold border border-zinc-700">
                       {t.category}
                     </span>
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-3">
                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${t.type === TransactionType.INCOME
                       ? 'bg-emerald-500/10 text-emerald-500'
                       : 'bg-rose-500/10 text-rose-500'
@@ -178,10 +178,10 @@ const Records: React.FC<RecordsProps> = ({ transactions, categories, onAddTransa
                       {t.type}
                     </span>
                   </td>
-                  <td className={`px-6 py-5 text-sm font-bold text-right ${t.type === TransactionType.INCOME ? 'text-emerald-500' : 'text-zinc-100'}`}>
+                  <td className={`px-6 py-3 text-sm font-bold text-right ${t.type === TransactionType.INCOME ? 'text-emerald-500' : 'text-zinc-100'}`}>
                     R${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </td>
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-3">
                     <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => onEditTransaction(t)}

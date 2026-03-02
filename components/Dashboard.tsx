@@ -159,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
   }, [filteredTransactions]);
 
   return (
-    <div className="px-3 md:p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="px-3 md:p-5 max-w-[1400px] mx-auto animate-in fade-in duration-500">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold text-white mb-1">Visão Geral</h2>
@@ -169,7 +169,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
 
           {/* Custom Date Filters */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4 md:mt-6 w-full sm:w-auto">
-            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-xl px-3 py-2 flex-1 sm:flex-none">
+            <div className="flex items-center gap-2 bg-[#0a0b14] border border-zinc-800 rounded-lg px-3 py-2 flex-1 sm:flex-none">
               <span className="text-[10px] text-zinc-500 font-bold uppercase">De</span>
               <input
                 type="date"
@@ -191,7 +191,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full appearance-none bg-[#0a0b14] border border-zinc-800 rounded-xl pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
+                className="w-full appearance-none bg-[#0a0b14] border border-zinc-800 rounded-lg pl-10 pr-8 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 cursor-pointer hover:bg-zinc-900 transition-colors"
               >
                 <option value="all">Todas categorias</option>
                 {categories.map(cat => (
@@ -210,7 +210,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
           { label: 'GASTO MÉDIO DIÁRIO', value: stats.dailyAvg, trend: '+0%', trendType: 'up', icon: DollarSign },
           { label: 'CATEGORIA MAIOR GASTO', value: stats.topCategory[0], detail: `R$ ${Number(stats.topCategory[1]).toLocaleString('pt-BR')}`, icon: PieChart },
         ].map((stat, i) => (
-          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-4 md:p-6 rounded-2xl hover:border-zinc-700 transition-all group">
+          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-4 md:p-5 rounded-xl hover:border-zinc-700 transition-all group">
             <div className="flex justify-between items-start mb-3 md:mb-4">
               <p className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-wider md:tracking-widest">{stat.label}</p>
               <div className="p-1.5 md:p-2 bg-zinc-800 rounded-lg text-zinc-400 group-hover:text-emerald-500 transition-colors">
@@ -233,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl">
+        <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-xl">
           <div className="flex justify-between items-end mb-6">
             <div>
               <h3 className="text-lg font-bold text-white">Gastos por Dia</h3>
@@ -297,7 +297,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
           </div>
         </div>
 
-        <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl">
+        <div className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-xl">
           <div className="flex justify-between items-end mb-6">
             <div>
               <h3 className="text-lg font-bold text-white">Despesas por Categoria</h3>
@@ -333,7 +333,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, insight
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {insights.map((insight) => (
-            <div key={insight.id} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-2xl hover:bg-zinc-900/60 transition-colors group relative overflow-hidden">
+            <div key={insight.id} className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-xl hover:bg-zinc-900/60 transition-colors group relative overflow-hidden">
               <div className="flex items-center gap-3 mb-4">
                 <div className={`p-2.5 rounded-xl ${insight.type === 'opportunity' ? 'bg-emerald-500/10 text-emerald-500' :
                   insight.type === 'alert' ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'
